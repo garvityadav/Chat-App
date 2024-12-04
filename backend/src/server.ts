@@ -13,7 +13,7 @@ app.get("/api/status", (req, res) => {
 });
 
 //mount the auth
-app.use("/api/auth", authRoutes);
+app.use("/api/v1/auth", authRoutes);
 app.listen(PORT, () => {
   console.log(`server is running on http://localhost:${PORT}`);
 });

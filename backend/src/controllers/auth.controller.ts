@@ -1,23 +1,37 @@
 import { Request, Response } from "express";
 import { savePassword, verifyPassword } from "../utils/passHash";
-import userModel, { IUser } from "../models/user.model";
-import { createToken } from "../utils/auth.token";
+import prisma from "../config/prisma";
+import StatusCode, { StatusCodes } from "http-status-codes";
 
 const registerUser = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { email, username, password } = req.body;
-    const hashedPassword = await savePassword(password);
-    const user: IUser = new userModel({
-      email: email,
-      username: username,
-      password: hashedPassword,
+    console.log(email, username, password);
+    //check if the user already exists :
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
     });
-    await user.save();
-    return res.status(201).json({
+    console.log(existingUser);
+    if (existingUser) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: "Email already exists",
+      });
+    }
+
+    const hashedPassword = await savePassword(password);
+    const user = await prisma.user.create({
+      data: {
+        email: email,
+        username: username,
+        password: hashedPassword,
+      },
+    });
+    return res.status(StatusCode.CREATED).json({
       message: "new user registered successfully",
+      user,
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
       message: "error registering user",
     });
   }
@@ -28,9 +42,9 @@ const loginUser = async (req: Request, res: Response): Promise<Response> => {
     const { email, password } = req.body;
 
     //find the user in db
-    const user = await userModel.findOne({ email });
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(404).json({
+      return res.status(StatusCode.NOT_FOUND).json({
         message: "No user found",
       });
     }
@@ -41,11 +55,13 @@ const loginUser = async (req: Request, res: Response): Promise<Response> => {
         message: "Invalid credentials",
       });
     }
-    const token = await createToken(user._id);
-    return res.status(200).json({ token });
+    return res.status(StatusCode.OK).json({
+      message: "Login successful",
+      user,
+    });
   } catch (error) {
     console.error("error logging in", error);
-    return res.status(500).json({
+    return res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
       message: "internal server error. Please try again later",
     });
   }
