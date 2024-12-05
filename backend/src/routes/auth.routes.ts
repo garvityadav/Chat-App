@@ -4,11 +4,10 @@ import { registerUser, loginUser } from "../controllers/auth.controller";
 const router = express.Router();
 
 router.post("/register", (req: Request, res: Response) => {
-  console.log("here");
-  registerUser;
+  registerUser(req, res);
 });
 router.post("/login", (req: Request, res: Response) => {
-  loginUser;
+  loginUser(req, res);
 });
 
 export default router;

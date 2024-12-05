@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const saltRound = process.env.SALTROUND || 10;
+const saltRound: number = parseInt(`${process.env.SALTROUND}`) || 10;
 
 export const savePassword = async (password: string) => {
   try {
