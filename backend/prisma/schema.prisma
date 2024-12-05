@@ -13,18 +13,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id  String @id @default(uuid())
-  username  String 
-  email String @unique
-  password  String  
-  message Message[] 
+model User {
+  id              String    @id @default(uuid())
+  username        String
+  email           String    @unique
+  password        String
+  sentMessage     Message[] @relation("SentMessages")
+  receivedMessage Message[] @relation("ReceivedMessages")
 }
 
-model Message{
-  id  String @id @default(uuid())
-  content String
-  timestamp DateTime  @default(now())
-  senderId  String
-  sender  User  @relation(fields: [senderId],references: [id])
+model Message {
+  id         String   @id @default(uuid())
+  content    String
+  senderId   String
+  receiverId String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  createdAt  DateTime @default(now())
 }
