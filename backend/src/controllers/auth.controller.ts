@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { savePassword, verifyPassword } from "../utils/passHash";
 import prisma from "../config/prisma";
 import { StatusCodes } from "http-status-codes";
-
+import jwt from "jsonwebtoken";
 const registerUser = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { email, username, password } = req.body;
@@ -47,7 +47,6 @@ const loginUser = async (req: Request, res: Response): Promise<Response> => {
         message: "No user found",
       });
     }
-    console.log(user);
 
     const passwordMatch = await verifyPassword(password, user.password);
     if (!passwordMatch) {
@@ -55,6 +54,7 @@ const loginUser = async (req: Request, res: Response): Promise<Response> => {
         message: "Invalid credentials",
       });
     }
+
     return res.status(StatusCodes.OK).json({
       message: "Login successful",
       user,

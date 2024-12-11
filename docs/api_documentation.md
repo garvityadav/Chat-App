@@ -2,12 +2,17 @@
 
 ### Authentication
 
-- **POST api/signup**
+- **api/register**
+
+  - #### Method
+
+    - POST
 
   - **Request Body:**
 
     - ```json
       {
+        "email": "string",
         "username": "string",
         "password": "string"
       }
@@ -21,13 +26,17 @@
     }
     ```
 
-- **POST api/login**
+- **api/login**
+
+  - #### Method
+
+    - POST
 
   - **Request body:**
 
     - ```json
       {
-        "username": "string",
+        "email": "string",
         "password": "string"
       }
       ```

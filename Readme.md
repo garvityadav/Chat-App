@@ -1,1 +1,1 @@
-This is a chat applicationa which allows users to chat among themselves. By the help of this project I will be able to learn how real-time chatting application is built from the scratch.
+This is a chat application that allows user to register , login and chat with other users. Build to demonstrate MERN stack with PostgreSQL and Typescript
