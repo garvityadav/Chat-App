@@ -2,12 +2,11 @@ import { Request, Response } from "express";
 import { savePassword, verifyPassword } from "../utils/passHash";
 import prisma from "../config/prisma";
 import { StatusCodes } from "http-status-codes";
-import { Iuser } from "../interface/user.model";
 
 export const sendMessage = async (
   req: Request,
   res: Response
-): Promise<Response> => {
+): Promise<void> => {
   try {
     const { message, senderID, receiverID } = req.body;
     //check if both user exist
@@ -16,19 +15,19 @@ export const sendMessage = async (
       where: { id: receiverID },
     });
     if (!sender || !receiver) {
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "user not found" });
+      res.status(StatusCodes.BAD_REQUEST).json({ message: "user not found" });
+      return;
     }
     const messageDoc = await prisma.message.create({
       data: { content: message, senderId: sender.id, receiverId: receiver.id },
     });
-    return res
+    res
       .status(StatusCodes.CREATED)
       .json({ message: "message saved", messageDoc });
+    return;
   } catch (error) {
     console.error(error);
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       message: "internal server error",
     });
   }
@@ -37,15 +36,16 @@ export const sendMessage = async (
 export const getUserWithMessages = async (
   req: Request,
   res: Response
-): Promise<Response> => {
+): Promise<void> => {
   try {
     const { userId } = req.params;
     console.log(req.params);
     // if no user id
     if (!userId) {
-      return res
+      res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "user id not found" });
+      return;
     }
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -56,20 +56,23 @@ export const getUserWithMessages = async (
     });
     // if no user
     if (!user) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "user not found" });
+      res.status(StatusCodes.NOT_FOUND).json({ message: "user not found" });
+      return;
     }
 
     const { receivedMessage, sentMessage } = user;
 
-    return res.status(StatusCodes.OK).json({
+    res.status(StatusCodes.OK).json({
       message: "message displayed",
       receivedMessage,
       sentMessage,
     });
+    return;
   } catch (error) {
     console.error(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      message: "Internal server error",
+    });
     throw new Error("internal server error");
   }
 };

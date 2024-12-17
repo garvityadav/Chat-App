@@ -1,24 +1,25 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
 import { verifyToken } from "../utils/auth.token";
 import { CustomRequest } from "../interface/middleware.interface";
 
-export const authMiddleware = (
-  req: CustomRequest,
+export const authMiddleware: RequestHandler = (
+  req: Request,
   res: Response,
   next: NextFunction
 ): void => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer")) {
-      res.status(StatusCodes.BAD_REQUEST).json({
-        message: "Authorization header missing or invalid",
+    const accessToken = req.cookies.access_token;
+    const refreshToken = req.cookies.refresh_token;
+    if (!accessToken || !refreshToken) {
+      res.status(StatusCodes.UNAUTHORIZED).json({
+        message: "Unauthorize access",
       });
       return;
     }
-    const token = authHeader.split(" ")[1];
-    const decode = verifyToken(token);
-    req.user = decode;
+    const decode = verifyToken(accessToken, refreshToken, res);
+
+    (req as CustomRequest).user = decode;
     next();
   } catch (error) {
     console.error(error);
