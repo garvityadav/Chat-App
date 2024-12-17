@@ -2,18 +2,24 @@
 
 ### Authentication
 
-- **POST api/signup**
+- **api/register**
+
+  - #### Method
+
+    - POST
 
   - **Request Body:**
 
     - ```json
       {
+        "email": "string",
         "username": "string",
         "password": "string"
       }
       ```
 
   - **Response Body**:
+
     ```json
     {
       "message": "User created successfully",
@@ -21,13 +27,17 @@
     }
     ```
 
-- **POST api/login**
+- **api/login**
+
+  - #### Method
+
+    - POST
 
   - **Request body:**
 
     - ```json
       {
-        "username": "string",
+        "email": "string",
         "password": "string"
       }
       ```
@@ -42,12 +52,29 @@
       }
       ```
 
+- **api/logout**
+
+  - #### Method
+
+    - GET
+
+  - **Response Body**:
+
+    - ```json
+      {
+        "message": "User logged in successfully"
+      }
+      ```
+
 ### Messages
 
-- **POST api/messages**
+- **api/sendMessage**
 
-  - **Description:** send message from one user to another
-  - **Request body:**
+  - **Method**
+    - POST
+  - **Description** send message to the user
+
+  - **Request body**
 
     - ```json
       {
@@ -57,27 +84,36 @@
       }
       ```
 
-  - **Response body:**
+  - **Response body**
     - ```json
       {
         "message": "message sent successfully"
       }
       ```
 
-- **GET /api/messages?senderId=xyz&receiverId=abc**
-  - **Description:** Retrieve the chat history between two users.
-  - **Response:**
+- **api/getUserMessages/:userId**
+
+  - **Method**
+    - GET
+  - **Description**
+
+    - To get user messages
+
+  - **Request params**
+
     - ```json
-      [
-        {
-          "id": "string",
-          "senderId": "string",
-          "receiverId": "string",
-          "content": "string",
-          "timestamp": "datetime",
-          "read": false
-        }
-      ]
+      {
+        "userId": "string"
+      }
+      ```
+
+  - **Response body**
+    - ```json
+      {
+        "message": "message displayed",
+        "receivedMessage": {},
+        "sentMessage": {}
+      }
       ```
 
 ### Users
@@ -97,6 +133,7 @@
     ```
 
 - **PUT /api/users/:id/status**
+
   - **Description**: Update a user's online/offline status.
   - **Request Body**:
     ```json

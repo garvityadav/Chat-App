@@ -13,6 +13,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// //for future implementation
+// enum Role{
+//   USER
+//   ADMIN
+//   MODERATOR
+// }
+
 model User {
   id              String    @id @default(uuid())
   username        String
