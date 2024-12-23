@@ -4,7 +4,11 @@
 
   - User registration
   - user login
+  - login using tokens
 
 - ### Planned
-  - login using tokens
   - basic chat functionality
+  - landing page
+  - login and register page
+  - basic chat window
+  - basic user online tab

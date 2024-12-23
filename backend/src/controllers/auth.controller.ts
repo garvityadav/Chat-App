@@ -69,7 +69,8 @@ const loginUser: RequestHandler = async (
     // generate token
     const token: ITokens = await createToken({ id: user.id });
     if (!token) {
-      throw new Error("token not found");
+      console.error("token not found");
+      return;
     }
     //set cookie
     res.cookie("access_token", token.accessToken, {
@@ -93,6 +94,7 @@ const loginUser: RequestHandler = async (
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       message: "internal server error. Please try again later",
     });
+    return;
   }
 };
 
@@ -109,4 +111,31 @@ export const logout: RequestHandler = (req: Request, res: Response): void => {
   } catch (error) {}
 };
 
-export { registerUser, loginUser };
+const checkUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    console.log("Here");
+    const { email } = req.body;
+    if (!email) {
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "email is required" });
+      return;
+    }
+    const checkEmail = await prisma.user.findUnique({ where: { email } });
+    if (!checkEmail) {
+      console.log("Email not found");
+      res.status(StatusCodes.NOT_FOUND).json({
+        message: "Email not found!",
+      });
+      return;
+    }
+    res.status(StatusCodes.OK).json({ message: "User found" });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Internal server error" });
+    return;
+  }
+};
+export { registerUser, loginUser, checkUser };
