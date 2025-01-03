@@ -8,10 +8,10 @@ const io = new Server(3030, {
 });
 
 io.on("connection", (socket) => {
-  console.log("Connected:", socket.id);
+  logger.info("Connected:", socket.id);
   socket.emit("message", "Welcome to Socket.IO!");
 
   socket.on("message", (data) => {
-    console.log("Message received:", data);
+    logger.info("Message received:", data);
   });
 });

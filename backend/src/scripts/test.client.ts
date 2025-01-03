@@ -8,12 +8,12 @@ const socket = io("http://localhost:3030", {
 //handle connection
 
 socket.on("connect", () => {
-  console.log("connect to server with ID", socket.id);
+  logger.info("connect to server with ID", socket.id);
 });
 
 //emit message on the server
 socket.emit("message", { content: "Hello from client" });
 
 socket.on("disconnect", () => {
-  console.log("disconnected from the server");
+  logger.info("disconnected from the server");
 });

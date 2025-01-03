@@ -1,5 +1,6 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Response } from "express";
+import { logger } from "../utils/logger";
 const jwtAccessKey = process.env.JWT_PRIVATE_ACCESS_KEY || "";
 const jwtRefreshKey = process.env.JWT_PRIVATE_REFRESH_KEY || "";
 const jwtAccessExpireTime = process.env.JWT_ACCESS_EXPIRE_TIME || "1d";
@@ -75,7 +76,7 @@ export const verifyToken = async (
     return decodedPayload;
   } catch (error: any) {
     if (error.name === "TokenExpiredError") {
-      console.log("Access token expired , Verifying refresh token...");
+      logger.info("Access token expired , Verifying refresh token...");
       try {
         // 2. verify refresh token
         const decodedRefresh = jwt.verify(
@@ -95,7 +96,7 @@ export const verifyToken = async (
           sameSite: "strict",
           maxAge: 15 * 60 * 1000, //15 min
         });
-        console.log("new access_token cookie created");
+        logger.info("new access_token cookie created");
         return decodedRefresh;
       } catch (refreshError) {
         console.error("Refresh token verification failed", refreshError);
