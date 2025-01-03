@@ -1,4 +1,5 @@
-import prisma from "../config/prisma";
+import { prisma } from "../config/prisma";
+import { logger } from "../utils/logger";
 
 const main = async () => {
   try {
@@ -10,11 +11,11 @@ const main = async () => {
         password: "secure123",
       },
     });
-    console.log("User created", user);
+    logger.info("User created", user);
 
     //test retrieve user collection
     const users = await prisma.user.findMany();
-    console.log("List of users:\n", users);
+    logger.info("List of users:\n", users);
   } catch (error) {
     console.error(error);
     process.exit(1);

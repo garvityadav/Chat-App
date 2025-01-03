@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
 import { verifyToken } from "../utils/auth.token";
-import { CustomRequest } from "../interface/middleware.interface";
+import { CustomRequest } from "../interface/interface";
 
 export const authMiddleware: RequestHandler = (
   req: Request,

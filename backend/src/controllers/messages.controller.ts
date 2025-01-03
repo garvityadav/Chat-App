@@ -1,11 +1,13 @@
-import { Request, Response } from "express";
-import { savePassword, verifyPassword } from "../utils/passHash";
-import prisma from "../config/prisma";
+import { NextFunction, Request, Response } from "express";
+import { prisma } from "../config/prisma";
 import { StatusCodes } from "http-status-codes";
+import { IJsonResponse } from "../interface/interface";
+import { CustomError } from "../error_middleware/error.middleware";
 
 export const sendMessage = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const { message, senderID, receiverID } = req.body;
@@ -15,37 +17,33 @@ export const sendMessage = async (
       where: { id: receiverID },
     });
     if (!sender || !receiver) {
-      res.status(StatusCodes.BAD_REQUEST).json({ message: "user not found" });
-      return;
+      throw new CustomError("user not found", StatusCodes.BAD_REQUEST);
     }
     const messageDoc = await prisma.message.create({
       data: { content: message, senderId: sender.id, receiverId: receiver.id },
     });
-    res
-      .status(StatusCodes.CREATED)
-      .json({ message: "message saved", messageDoc });
+    const response: IJsonResponse = {
+      status: StatusCodes.CREATED,
+      message: "message saved",
+      data: messageDoc,
+    };
+    res.status(response.status).json(response);
     return;
   } catch (error) {
-    console.error(error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      message: "internal server error",
-    });
+    next(error);
   }
 };
 
 export const getUserWithMessages = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const { userId } = req.params;
-    console.log(req.params);
     // if no user id
     if (!userId) {
-      res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "user id not found" });
-      return;
+      throw new CustomError("user id not found", StatusCodes.BAD_REQUEST);
     }
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -56,23 +54,18 @@ export const getUserWithMessages = async (
     });
     // if no user
     if (!user) {
-      res.status(StatusCodes.NOT_FOUND).json({ message: "user not found" });
-      return;
+      throw new CustomError("user not found", StatusCodes.NOT_FOUND);
     }
 
     const { receivedMessage, sentMessage } = user;
-
-    res.status(StatusCodes.OK).json({
+    const response: IJsonResponse = {
+      status: StatusCodes.OK,
       message: "message displayed",
-      receivedMessage,
-      sentMessage,
-    });
+      data: { receivedMessage, sentMessage },
+    };
+    res.status(StatusCodes.OK).json(response);
     return;
   } catch (error) {
-    console.error(error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      message: "Internal server error",
-    });
-    throw new Error("internal server error");
+    next(error);
   }
 };

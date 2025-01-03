@@ -1,14 +1,16 @@
-import { Request, RequestHandler, Response } from "express";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import { savePassword, verifyPassword } from "../utils/passHash";
-import prisma from "../config/prisma";
+import { prisma } from "../config/prisma";
 import { StatusCodes } from "http-status-codes";
 import { createToken, ITokens } from "../utils/auth.token";
-
-const jwtAccessExpireTime = process.env.JWT_ACCESS_EXPIRE_TIME || "15m";
+import { logger } from "../utils/logger";
+import { IJsonResponse } from "../interface/interface";
+import { CustomError } from "../error_middleware/error.middleware";
 
 const registerUser: RequestHandler = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const { email, username, password } = req.body;
@@ -17,9 +19,7 @@ const registerUser: RequestHandler = async (
       where: { email },
     });
     if (existingUser) {
-      res.status(StatusCodes.BAD_REQUEST).json({
-        message: "Email already exists",
-      });
+      throw new CustomError("Email already exists", StatusCodes.BAD_REQUEST);
     }
 
     const hashedPassword = await savePassword(password);
@@ -30,21 +30,51 @@ const registerUser: RequestHandler = async (
         password: hashedPassword,
       },
     });
-    res.status(StatusCodes.CREATED).json({
+
+    // generate token
+    const token: ITokens = await createToken({ id: user.id });
+    if (!token) {
+      logger.error("token not found");
+      throw new CustomError(
+        "Token not found",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    //set cookie
+    res.cookie("access_token", token.accessToken, {
+      httpOnly: true, //Prevents Javascript access
+      secure: process.env.NODE_ENV === "production", //HTTPS only in production
+      sameSite: "strict",
+      maxAge: parseInt(
+        process.env.JWT_ACCESS_EXPIRE_TIME || `${15 * 60 * 1000}`
+      ), //15 min
+    });
+
+    res.cookie("refresh_token", token.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: parseInt(
+        process.env.JWT_REFRESH_EXPIRE_TIME || `${24 * 60 * 60 * 1000}`
+      ), //1 day
+    });
+
+    const response: IJsonResponse = {
+      status: StatusCodes.CREATED,
       message: "new user registered successfully",
-      user,
-    });
+      data: { userId: user.id },
+    };
+
+    res.status(StatusCodes.CREATED).json(response);
   } catch (error) {
-    console.error(error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      message: "error registering user",
-    });
+    next(error);
   }
 };
 
 const loginUser: RequestHandler = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const { email, password } = req.body;
@@ -53,89 +83,104 @@ const loginUser: RequestHandler = async (
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      res.status(StatusCodes.NOT_FOUND).json({
-        message: "No user found",
-      });
-      return;
+      throw new CustomError("User not found", StatusCodes.NOT_FOUND);
     }
 
     const passwordMatch = await verifyPassword(password, user.password);
     if (!passwordMatch) {
-      res.status(StatusCodes.UNAUTHORIZED).json({
-        message: "Invalid credentials",
-      });
+      throw new CustomError("Invalid password", StatusCodes.UNAUTHORIZED);
     }
 
     // generate token
     const token: ITokens = await createToken({ id: user.id });
     if (!token) {
-      console.error("token not found");
-      return;
+      logger.error("token not found");
+      throw new CustomError(
+        "Token not found",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
     }
     //set cookie
     res.cookie("access_token", token.accessToken, {
       httpOnly: true, //Prevents Javascript access
       secure: process.env.NODE_ENV === "production", //HTTPS only in production
       sameSite: "strict",
-      maxAge: 15 * 60 * 60 * 1000, //15 min
+      maxAge: parseInt(
+        process.env.JWT_ACCESS_EXPIRE_TIME || `${15 * 60 * 1000}`
+      ), //15 min
     });
 
     res.cookie("refresh_token", token.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7 * 60 * 60 * 60 * 1000, //7days
+      maxAge: parseInt(
+        process.env.JWT_REFRESH_EXPIRE_TIME || `${24 * 60 * 60 * 1000}`
+      ), //1 day
     });
-    res.status(StatusCodes.OK).json({
+    const response: IJsonResponse = {
+      status: StatusCodes.OK,
       message: "Login successful",
-    });
+    };
+    res.status(StatusCodes.OK).json(response);
+    return;
   } catch (error) {
-    console.error("error logging in", error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      message: "internal server error. Please try again later",
-    });
+    next(error);
     return;
   }
 };
 
-export const logout: RequestHandler = (req: Request, res: Response): void => {
+export const logout: RequestHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   try {
-    res.clearCookie("token", {
+    res.clearCookie("access_token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
-    res.status(StatusCodes.OK).json({
-      message: "user logged out!",
+    res.clearCookie("refresh_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
     });
-  } catch (error) {}
+    const response: IJsonResponse = {
+      status: StatusCodes.OK,
+      message: "user logged out!",
+    };
+    res.status(StatusCodes.OK).json(response);
+    return;
+  } catch (error) {
+    next(error);
+  }
 };
 
-const checkUser = async (req: Request, res: Response): Promise<void> => {
+const checkUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    console.log("Here");
+    logger.info("Checking user");
     const { email } = req.body;
     if (!email) {
-      res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "email is required" });
-      return;
+      throw new CustomError("Email not found", StatusCodes.BAD_REQUEST);
     }
     const checkEmail = await prisma.user.findUnique({ where: { email } });
     if (!checkEmail) {
-      console.log("Email not found");
-      res.status(StatusCodes.NOT_FOUND).json({
-        message: "Email not found!",
-      });
-      return;
+      logger.info("Email not found");
+      throw new CustomError("Email not found", StatusCodes.NOT_FOUND);
     }
-    res.status(StatusCodes.OK).json({ message: "User found" });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "Internal server error" });
+    const response: IJsonResponse = {
+      status: StatusCodes.OK,
+      message: "User found",
+    };
+    res.status(StatusCodes.OK).json(response);
     return;
+  } catch (error) {
+    next(error);
   }
 };
 export { registerUser, loginUser, checkUser };
