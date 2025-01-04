@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import http from "http";
+import { createServer } from "node:http";
 import authRoutes from "./routes/auth.routes";
 import messageRoutes from "./routes/message.routes";
 import cookieParser from "cookie-parser";
@@ -8,26 +8,37 @@ import { initializeSocket } from "./socket/socket";
 import cors from "cors";
 import { errorMiddleware } from "./error_middleware/error.middleware";
 import { gracefullyShutdown } from "./config/prisma";
-import { logger, pinoHttpLogger } from "./utils/logger";
-import { pinoHttp } from "pino-http";
+import { pinoHttpLogger } from "./utils/logger";
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 const app = express();
 
 // create HTTP server
-const httpServer = http.createServer(app);
-
+const server = createServer(app);
+const allowedOrigins = [
+  process.env.FRONTEND_URL?.toString(),
+  process.env.POSTMAN_URL?.toString(),
+];
 app.use(
-  cors({ origin: process.env.FRONTEND_URL?.toString(), credentials: true })
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
 );
-
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(pinoHttpLogger);
 // initialize socket io server
-initializeSocket(httpServer);
+initializeSocket(server);
 
 app.get("/api/status", (req, res) => {
   res.json({ message: "server is running" });
@@ -44,6 +55,6 @@ process.on("SIGINT", () => {
 process.on("SIGTERM", () => {
   gracefullyShutdown("SIGTERM");
 }); // handle kill
-httpServer.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`server is running on http://localhost:${PORT}`);
 });

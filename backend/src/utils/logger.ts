@@ -8,22 +8,28 @@
 ////////////////////////////////////////
 
 import pino from "pino";
-import path from "path";
-import fs from "fs";
+import { join } from "node:path";
+import {
+  createWriteStream,
+  promises,
+  WriteStream,
+  existsSync,
+  mkdirSync,
+} from "fs";
 import { Writable } from "stream";
 import pinoHttp from "pino-http";
 
-const fsPromises = fs.promises;
+const fsPromises = promises;
 // class for comma separated stream
 class CommaSeparatedStream extends Writable {
-  private fileStream: fs.WriteStream;
+  private fileStream: WriteStream;
   private isFileEmpty = true;
   private filePath: string;
 
   constructor(filePath: string) {
     super();
     this.filePath = filePath;
-    this.fileStream = fs.createWriteStream(filePath, { flags: "a" });
+    this.fileStream = createWriteStream(filePath, { flags: "a" });
     this.prepareLogFile();
   }
   private async prepareLogFile() {
@@ -68,29 +74,26 @@ class CommaSeparatedStream extends Writable {
 // create a log directory
 const currentDate = new Date().toISOString().slice(0, 10);
 const currentHour = new Date().getHours();
-const logDirectory = path.join(
+const logDirectory = join(
   __dirname,
   "../../",
   `logsDir/${currentDate}/${currentHour}`
 );
 
 try {
-  if (!fs.existsSync(logDirectory)) {
-    fs.mkdirSync(logDirectory, { recursive: true });
+  if (!existsSync(logDirectory)) {
+    mkdirSync(logDirectory, { recursive: true });
   }
 } catch (error) {
   console.error("Error creating log directory:", error);
 }
 
 //setup for pino logger
-const logFileStream = path.join(
-  logDirectory,
-  `${process.env.NODE_ENV}.pino.json`
-);
+const logFileStream = join(logDirectory, `${process.env.NODE_ENV}.pino.json`);
 const logStream = new CommaSeparatedStream(logFileStream);
 
 //setup for pino http logger
-const pinoHttpLogFileStream = path.join(
+const pinoHttpLogFileStream = join(
   logDirectory,
   `${process.env.NODE_ENV}.pino.http.json`
 );
@@ -121,14 +124,19 @@ const pinoHttpLogger = pinoHttp(
         url: req.url,
       }),
       res: (res) => ({
-        statusCode: res.statusCode,
+        statusCode: res ? res.statusCode : undefined,
       }),
     },
     customLogLevel: (res, err) => {
-      if (res.statusCode && res.statusCode >= 400 && res.statusCode < 500) {
-        return "warn";
-      } else if ((res.statusCode && res.statusCode >= 500) || err) {
-        return "error";
+      console.log("res", res.statusCode);
+      if (res && res.statusCode) {
+        if (res.statusCode >= 400) {
+          return "warn";
+        } else if (res.statusCode >= 500 || err) {
+          return "error";
+        } else if (res.statusCode >= 200) {
+          return "info";
+        }
       }
       return "info";
     },

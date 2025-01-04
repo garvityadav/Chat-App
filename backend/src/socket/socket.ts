@@ -1,8 +1,8 @@
 import { Server } from "socket.io";
-import http from "http";
+import { Server as HttpServer } from "node:http";
 import { logger } from "../utils/logger";
 
-export const initializeSocket = (httpServer: http.Server): Server => {
+export const initializeSocket = (httpServer: HttpServer): Server => {
   const io = new Server(httpServer, {
     cors: {
       origin: "*",

@@ -1,7 +1,10 @@
+////////////////////////////////////////
+// sendMessage , getUserConversation
+////////////////////////////////////////
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../config/prisma";
 import { StatusCodes } from "http-status-codes";
-import { IJsonResponse } from "../interface/interface";
+import { CustomRequest, IJsonResponse } from "../interface/interface";
 import { CustomError } from "../error_middleware/error.middleware";
 
 export const sendMessage = async (
@@ -34,34 +37,41 @@ export const sendMessage = async (
   }
 };
 
-export const getUserWithMessages = async (
+export const getUserConversation = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { userId } = req.params;
+    const otherUserId = req.params.id;
+
+    const { userId } = (req as CustomRequest).user;
+
     // if no user id
-    if (!userId) {
+    if (!otherUserId) {
       throw new CustomError("user id not found", StatusCodes.BAD_REQUEST);
     }
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        sentMessage: true,
-        receivedMessage: true,
-      },
+    const otherUser = await prisma.user.findUnique({
+      where: { id: otherUserId },
     });
     // if no user
-    if (!user) {
+    if (!otherUser) {
       throw new CustomError("user not found", StatusCodes.NOT_FOUND);
     }
 
-    const { receivedMessage, sentMessage } = user;
+    const messages = await prisma.message.findMany({
+      where: {
+        OR: [
+          { senderId: userId, receiverId: otherUserId },
+          { senderId: otherUserId, receiverId: userId },
+        ],
+      },
+    });
+
     const response: IJsonResponse = {
       status: StatusCodes.OK,
-      message: "message displayed",
-      data: { receivedMessage, sentMessage },
+      message: "messages found",
+      data: messages,
     };
     res.status(StatusCodes.OK).json(response);
     return;

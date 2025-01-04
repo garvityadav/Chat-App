@@ -14,7 +14,7 @@ function LandingPage() {
       console.log("inside check user exist");
       const response = await axios({
         method: "post",
-        url: "http://localhost:3030/api/v1/auth/check-user",
+        url: `${process.env.BACKEND_URL}/api/v1/auth/check-user`,
         headers: {
           "Content-Type": "application/json",
         },

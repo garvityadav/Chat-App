@@ -1,10 +1,13 @@
+//////////////////////////////////////
+// registerUser , loginUser, checkUser, logout
+//////////////////////////////////////
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { savePassword, verifyPassword } from "../utils/passHash";
 import { prisma } from "../config/prisma";
 import { StatusCodes } from "http-status-codes";
 import { createToken, ITokens } from "../utils/auth.token";
 import { logger } from "../utils/logger";
-import { IJsonResponse } from "../interface/interface";
+import { CustomRequest, IJsonResponse } from "../interface/interface";
 import { CustomError } from "../error_middleware/error.middleware";
 
 const registerUser: RequestHandler = async (
@@ -121,6 +124,7 @@ const loginUser: RequestHandler = async (
     const response: IJsonResponse = {
       status: StatusCodes.OK,
       message: "Login successful",
+      data: { userId: user.id },
     };
     res.status(StatusCodes.OK).json(response);
     return;
@@ -136,6 +140,7 @@ export const logout: RequestHandler = (
   next: NextFunction
 ): void => {
   try {
+    const { userId } = (req as CustomRequest).user;
     res.clearCookie("access_token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -149,6 +154,7 @@ export const logout: RequestHandler = (
     const response: IJsonResponse = {
       status: StatusCodes.OK,
       message: "user logged out!",
+      data: { userId },
     };
     res.status(StatusCodes.OK).json(response);
     return;

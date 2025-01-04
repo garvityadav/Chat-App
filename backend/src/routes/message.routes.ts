@@ -1,7 +1,7 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import {
   sendMessage,
-  getUserWithMessages,
+  getUserConversation,
 } from "../controllers/messages.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 
@@ -12,6 +12,6 @@ router.use(authMiddleware);
 
 //send message
 router.post("/sendMessage", sendMessage);
-router.get("/getUserMessages/:userId", getUserWithMessages);
+router.get("/conversation/:id", getUserConversation);
 
 export default router;

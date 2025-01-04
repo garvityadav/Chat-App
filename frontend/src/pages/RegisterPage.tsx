@@ -21,7 +21,7 @@ const RegisterPage = ({ email }: { email: string }) => {
     try {
       await axios({
         method: "post",
-        url: "http://localhost:3030/api/v1/auth/register",
+        url: `${process.env.BACKEND_URL}/api/v1/auth/register`,
         data: {
           email,
           username,

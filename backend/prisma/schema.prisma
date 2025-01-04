@@ -25,6 +25,7 @@ model User {
   username        String
   email           String    @unique
   password        String
+  isActive        Boolean   @default(false)
   sentMessage     Message[] @relation("SentMessages")
   receivedMessage Message[] @relation("ReceivedMessages")
 }

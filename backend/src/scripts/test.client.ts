@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
+import { logger } from "../utils/logger";
 
-const socket = io("http://localhost:3030", {
+const socket = io(`${process.env.BACKEND_URL}`, {
   withCredentials: true,
   transports: ["websocket"],
 });
