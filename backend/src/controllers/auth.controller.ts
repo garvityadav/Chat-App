@@ -1,7 +1,13 @@
 //////////////////////////////////////
 // registerUser , loginUser, checkUser, logout
 //////////////////////////////////////
-import { NextFunction, Request, RequestHandler, Response } from "express";
+import {
+  NextFunction,
+  Request,
+  RequestHandler,
+  response,
+  Response,
+} from "express";
 import { savePassword, verifyPassword } from "../utils/passHash";
 import { prisma } from "../config/prisma";
 import { StatusCodes } from "http-status-codes";
@@ -10,7 +16,14 @@ import { logger } from "../utils/logger";
 import { CustomRequest, IJsonResponse } from "../interface/interface";
 import { CustomError } from "../error_middleware/error.middleware";
 
-const registerUser: RequestHandler = async (
+const accessCookieExpireTime = process.env.ACCESS_COOKIE_EXPIRE_TIME
+  ? parseInt(process.env.ACCESS_COOKIE_EXPIRE_TIME, 10)
+  : 15 * 60 * 1000;
+const refreshCookieExpireTime = process.env.REFRESH_COOKIE_EXPIRE_TIME
+  ? parseInt(process.env.REFRESH_COOKIE_EXPIRE_TIME, 10)
+  : 24 * 60 * 60 * 1000;
+
+export const registerUser: RequestHandler = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -35,7 +48,7 @@ const registerUser: RequestHandler = async (
     });
 
     // generate token
-    const token: ITokens = await createToken({ id: user.id });
+    const token: ITokens = await createToken({ userId: user.id });
     if (!token) {
       logger.error("token not found");
       throw new CustomError(
@@ -48,18 +61,14 @@ const registerUser: RequestHandler = async (
       httpOnly: true, //Prevents Javascript access
       secure: process.env.NODE_ENV === "production", //HTTPS only in production
       sameSite: "strict",
-      maxAge: parseInt(
-        process.env.JWT_ACCESS_EXPIRE_TIME || `${15 * 60 * 1000}`
-      ), //15 min
+      maxAge: accessCookieExpireTime,
     });
 
     res.cookie("refresh_token", token.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: parseInt(
-        process.env.JWT_REFRESH_EXPIRE_TIME || `${24 * 60 * 60 * 1000}`
-      ), //1 day
+      maxAge: refreshCookieExpireTime, //1 day
     });
 
     const response: IJsonResponse = {
@@ -74,7 +83,7 @@ const registerUser: RequestHandler = async (
   }
 };
 
-const loginUser: RequestHandler = async (
+export const loginUser: RequestHandler = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -95,7 +104,7 @@ const loginUser: RequestHandler = async (
     }
 
     // generate token
-    const token: ITokens = await createToken({ id: user.id });
+    const token: ITokens = await createToken({ userId: user.id });
     if (!token) {
       logger.error("token not found");
       throw new CustomError(
@@ -106,20 +115,16 @@ const loginUser: RequestHandler = async (
     //set cookie
     res.cookie("access_token", token.accessToken, {
       httpOnly: true, //Prevents Javascript access
-      secure: process.env.NODE_ENV === "production", //HTTPS only in production
+      secure: process.env.NODE_ENV?.toString() === "production", //HTTPS only in production
       sameSite: "strict",
-      maxAge: parseInt(
-        process.env.JWT_ACCESS_EXPIRE_TIME || `${15 * 60 * 1000}`
-      ), //15 min
+      maxAge: accessCookieExpireTime, //15 min
     });
 
     res.cookie("refresh_token", token.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV?.toString() === "production",
       sameSite: "strict",
-      maxAge: parseInt(
-        process.env.JWT_REFRESH_EXPIRE_TIME || `${24 * 60 * 60 * 1000}`
-      ), //1 day
+      maxAge: refreshCookieExpireTime, //1 day
     });
     const response: IJsonResponse = {
       status: StatusCodes.OK,
@@ -163,7 +168,7 @@ export const logout: RequestHandler = (
   }
 };
 
-const checkUser = async (
+export const checkUser = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -189,4 +194,22 @@ const checkUser = async (
     next(error);
   }
 };
-export { registerUser, loginUser, checkUser };
+
+export const getUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userLists = await prisma.user.findMany({});
+    const response: IJsonResponse = {
+      status: StatusCodes.OK,
+      message: "List generated",
+      data: userLists,
+      meta: { count: userLists.length },
+    };
+    res.status(response.status).json(response);
+  } catch (error) {
+    next(error);
+  }
+};

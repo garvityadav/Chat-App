@@ -2,9 +2,18 @@
 // active chat window
 // header
 //
+
+import ChatWindow from "../components/ChatWindow";
+import ChatList from "../components/ChatList";
+
 // section having user name and status
 function MainPage() {
-  return <div></div>;
+  return (
+    <div>
+      <ChatList />
+      <ChatWindow />
+    </div>
+  );
 }
 
 export default MainPage;

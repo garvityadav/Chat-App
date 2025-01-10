@@ -1,7 +1,3 @@
-export interface MessageDisplayProps {
-  otherUserId: string;
-}
-
 export interface IMessage {
   content: string;
   senderId: string;
@@ -9,9 +5,4 @@ export interface IMessage {
   sender: string;
   receiver: string;
   createdAt: Date;
-}
-
-export interface IMessages {
-  content: IMessage[];
-  errors: string;
 }

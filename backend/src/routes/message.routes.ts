@@ -2,6 +2,7 @@ import express from "express";
 import {
   sendMessage,
   getUserConversation,
+  getContactsLatestMessages,
 } from "../controllers/messages.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 
@@ -11,7 +12,9 @@ const router = express.Router();
 router.use(authMiddleware);
 
 //send message
-router.post("/sendMessage", sendMessage);
-router.get("/conversation/:id", getUserConversation);
+router
+  .post("/sendMessage", sendMessage)
+  .get("/conversation/:id", getUserConversation)
+  .get("/messages", getContactsLatestMessages);
 
 export default router;

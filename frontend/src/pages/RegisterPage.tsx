@@ -1,11 +1,20 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useGlobalContext } from "../contexts/GlobalContext";
+import { useNavigate } from "react-router-dom";
 
-const RegisterPage = ({ email }: { email: string }) => {
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+const RegisterPage = () => {
   const [error, setError] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const navigate = useNavigate();
+  const userContext = useGlobalContext();
+  if (!userContext) {
+    return <div>Error: User context is not available</div>;
+  }
+  const { email } = userContext;
 
   const handleRegister = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -21,7 +30,7 @@ const RegisterPage = ({ email }: { email: string }) => {
     try {
       await axios({
         method: "post",
-        url: `${process.env.BACKEND_URL}/api/v1/auth/register`,
+        url: `${backendUrl}/api/v1/auth/register`,
         data: {
           email,
           username,
@@ -30,6 +39,7 @@ const RegisterPage = ({ email }: { email: string }) => {
         },
         withCredentials: true,
       });
+      navigate("/main");
     } catch (error) {
       console.error(error);
       setError("Error: internal error at register in");

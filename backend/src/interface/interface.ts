@@ -1,13 +1,20 @@
 import { Request } from "express";
 import { JwtPayload } from "jsonwebtoken";
 
-export interface Iuser {
+export interface IUser {
   email: string;
   username: string;
   password: string;
+  contacts: [IContact];
   isActive: boolean;
   sentMessage: [];
   receivedMessage: [];
+}
+export interface IContact {
+  username: string;
+  userId: string;
+  contactId: string;
+  favorite: boolean;
 }
 
 export interface IMessage {

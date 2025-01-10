@@ -13,9 +13,13 @@ export const sendMessage = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { message, senderID, receiverID } = req.body;
+    const { message, receiverID } = req.body;
+    const { userId } = await (req as CustomRequest).user;
+    if (!userId) {
+      throw new CustomError("Invalid user id", StatusCodes.BAD_REQUEST);
+    }
     //check if both user exist
-    const sender = await prisma.user.findUnique({ where: { id: senderID } });
+    const sender = await prisma.user.findUnique({ where: { id: userId } });
     const receiver = await prisma.user.findUnique({
       where: { id: receiverID },
     });
@@ -43,16 +47,16 @@ export const getUserConversation = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const otherUserId = req.params.id;
+    const contactId = req.params.id;
 
     const { userId } = (req as CustomRequest).user;
 
     // if no user id
-    if (!otherUserId) {
+    if (!contactId) {
       throw new CustomError("user id not found", StatusCodes.BAD_REQUEST);
     }
     const otherUser = await prisma.user.findUnique({
-      where: { id: otherUserId },
+      where: { id: contactId },
     });
     // if no user
     if (!otherUser) {
@@ -62,8 +66,8 @@ export const getUserConversation = async (
     const messages = await prisma.message.findMany({
       where: {
         OR: [
-          { senderId: userId, receiverId: otherUserId },
-          { senderId: otherUserId, receiverId: userId },
+          { senderId: userId, receiverId: contactId },
+          { senderId: contactId, receiverId: userId },
         ],
       },
     });
@@ -75,6 +79,61 @@ export const getUserConversation = async (
     };
     res.status(StatusCodes.OK).json(response);
     return;
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getContactsLatestMessages = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { userId } = (req as CustomRequest).user;
+    console.log(userId);
+    if (!userId) {
+      throw new CustomError("user not found", StatusCodes.BAD_REQUEST);
+    }
+
+    const latestChats = await prisma.message.findMany({
+      where: {
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        sender: { select: { id: true, username: true } },
+        receiver: { select: { id: true, username: true } },
+      },
+    });
+    const distinctContactMessage: any = [];
+    const distinctContacts = new Set();
+
+    latestChats.forEach((message) => {
+      const contactId =
+        message.senderId == userId ? message.receiverId : message.senderId;
+
+      if (distinctContacts.has(contactId)) return;
+      distinctContacts.add(contactId);
+      const username =
+        contactId == message.sender.id
+          ? message.sender.username
+          : message.receiver.username;
+      distinctContactMessage.push({
+        contactId,
+        id: message.id,
+        content: message.content,
+        username,
+        read: message.read,
+        createdAt: message.createdAt,
+      });
+    });
+    const response: IJsonResponse = {
+      status: StatusCodes.OK,
+      message: "List created",
+      data: distinctContactMessage,
+    };
+    res.status(response.status).json(response);
   } catch (error) {
     next(error);
   }

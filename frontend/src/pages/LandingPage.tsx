@@ -1,20 +1,25 @@
 import { useState } from "react";
 import axios from "axios";
-import LoginPage from "./LoginPage";
-import RegisterPage from "./RegisterPage";
+import { useNavigate } from "react-router-dom";
+import { useGlobalContext } from "../contexts/GlobalContext";
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 function LandingPage() {
-  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
+  const navigate = useNavigate();
+  const globalContext = useGlobalContext();
+  if (!globalContext) {
+    return <div>Error: User context is not available</div>;
+  }
+  const { setEmail, email } = globalContext;
   //checking if user exists
   const checkUserExists = async (email: string): Promise<boolean> => {
     try {
       console.log("inside check user exist");
       const response = await axios({
         method: "post",
-        url: `${process.env.BACKEND_URL}/api/v1/auth/check-user`,
+        url: `${backendUrl}/api/v1/auth/check-user`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -46,23 +51,15 @@ function LandingPage() {
     try {
       const userExists = await checkUserExists(email);
       if (userExists) {
-        setShowLogin(true);
-        setShowRegister(false);
+        navigate("/login");
       } else {
-        setShowRegister(true);
-        setShowLogin(false);
+        navigate("/register");
       }
     } catch (error) {
       console.error("Error: in HandleNext", error);
       setError("Error: In handle next fun");
     }
   };
-  if (showLogin) {
-    return <LoginPage email={email} />;
-  }
-  if (showRegister) {
-    return <RegisterPage email={email} />;
-  }
   return (
     <div>
       <form method='POST' onSubmit={handleNext} action=''>

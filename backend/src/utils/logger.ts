@@ -128,7 +128,6 @@ const pinoHttpLogger = pinoHttp(
       }),
     },
     customLogLevel: (res, err) => {
-      console.log("res", res.statusCode);
       if (res && res.statusCode) {
         if (res.statusCode >= 400) {
           return "warn";

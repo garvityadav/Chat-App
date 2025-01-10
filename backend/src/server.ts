@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { createServer } from "node:http";
 import authRoutes from "./routes/auth.routes";
 import messageRoutes from "./routes/message.routes";
+import userRoutes from "./routes/user.routes";
 import cookieParser from "cookie-parser";
 import { initializeSocket } from "./socket/socket";
 import cors from "cors";
@@ -47,6 +48,7 @@ app.get("/api/status", (req, res) => {
 //routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/messaging", messageRoutes);
+app.use("/api/v1/user", userRoutes);
 app.use(errorMiddleware);
 
 process.on("SIGINT", () => {

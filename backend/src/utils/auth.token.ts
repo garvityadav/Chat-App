@@ -5,13 +5,15 @@ const jwtAccessKey = process.env.JWT_PRIVATE_ACCESS_KEY || "";
 const jwtRefreshKey = process.env.JWT_PRIVATE_REFRESH_KEY || "";
 const jwtAccessExpireTime = process.env.JWT_ACCESS_EXPIRE_TIME || "1d";
 const jwtRefreshExpireTime = process.env.JWT_REFRESH_EXPIRE_TIME || "7d";
+const cookieAccessExpireTime = process.env.ACCESS_COOKIE_EXPIRE_TIME;
+const cookieRefreshExpireTime = process.env.REFRESH_COOKIE_EXPIRE_TIME;
 
 export interface ITokens {
   accessToken: string;
   refreshToken: string;
 }
 export interface ICustomPayload extends JwtPayload {
-  id: string;
+  userId: string;
 }
 
 const createAccessToken = (payload: ICustomPayload): string => {
@@ -51,22 +53,11 @@ export const createToken = async (
   }
 };
 
-const verifyAccessToken = async (token: string) => {
-  try {
-    const payload = jwt.verify(token, jwtAccessKey, { algorithms: ["HS256"] });
-    return payload;
-  } catch (error: any) {
-    if (error.name === "TokenExpiredError") {
-      console.error("access token expired");
-    }
-  }
-};
-
-export const verifyToken = async (
+export const verifyToken = (
   accessToken: string,
   refreshToken: string,
   res: Response
-): Promise<ICustomPayload | null> => {
+): ICustomPayload => {
   try {
     //1. verify the access token
     const decodedPayload = jwt.verify(
@@ -94,7 +85,7 @@ export const verifyToken = async (
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "strict",
-          maxAge: 15 * 60 * 1000, //15 min
+          maxAge: parseInt(cookieAccessExpireTime || "15*60*1000"), //15 min
         });
         logger.info("new access_token cookie created");
         return decodedRefresh;

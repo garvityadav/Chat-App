@@ -7,7 +7,7 @@ export const initializeSocket = (httpServer: HttpServer): Server => {
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
-      credentials: true, //enable cookies
+      credentials: true,
     },
   });
 

@@ -1,11 +1,16 @@
 ///////////////////////////////////////////
 // this controller will have all the user related logic
-// getUser, updateUser, toggleUserStatus
+// getUser, updateUser, toggleUserStatus,getUserContacts
 ///////////////////////////////////////////
 
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, response } from "express";
 import { prisma } from "../config/prisma";
-import { CustomRequest, IJsonResponse } from "../interface/interface";
+import {
+  CustomRequest,
+  IContact,
+  IJsonResponse,
+  IUser,
+} from "../interface/interface";
 import { StatusCodes } from "http-status-codes";
 import { savePassword, verifyPassword } from "../utils/passHash";
 import { CustomError } from "../error_middleware/error.middleware";
@@ -94,6 +99,74 @@ export const toggleUserStatus = async (
       status: StatusCodes.OK,
       message: "user status updated",
     };
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUserContacts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { userId } = (req as CustomRequest).user;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { contacts: true },
+    });
+    if (!user)
+      throw new CustomError("can't find the user", StatusCodes.BAD_REQUEST);
+    const contacts = user.contacts;
+    const response: IJsonResponse = {
+      status: StatusCodes.OK,
+      message: "contact list created",
+      data: contacts,
+    };
+    res.status(response.status).json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addContact = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const contact: IContact = req.body;
+    if (!contact) {
+      throw new CustomError("Please provide contact", StatusCodes.BAD_REQUEST);
+    }
+    const contactExist = await prisma.user.findUnique({
+      where: { id: contact.contactId },
+    });
+    const { userId } = (req as CustomRequest).user;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user && !contactExist)
+      throw new CustomError(
+        "No user or contact found",
+        StatusCodes.BAD_REQUEST
+      );
+    const newContact = await prisma.contact.create({
+      data: {
+        userId: userId,
+        contactId: contact.contactId,
+        username: contact.username ? contact.username : contact.contactId,
+        favorite: contact.favorite ? contact.favorite : false,
+      },
+    });
+    const response: IJsonResponse = {
+      status: StatusCodes.CREATED,
+      message: "contact created",
+      data: {
+        contactId: newContact.id,
+      },
+    };
+    res.status(response.status).json(response);
   } catch (error) {
     next(error);
   }
