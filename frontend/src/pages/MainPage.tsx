@@ -4,7 +4,7 @@
 //
 
 import ChatWindow from "../components/ChatWindow";
-import ChatList from "../components/ChatList";
+import ChatList from "../components/ContactChatList";
 
 // section having user name and status
 function MainPage() {

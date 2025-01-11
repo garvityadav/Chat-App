@@ -1,14 +1,18 @@
 import { BrowserRouter as Router } from "react-router-dom";
 import AppRoutes from "./routes/Routes";
-import { UserProvider } from "./contexts/GlobalContext";
-import { socket } from "./socket";
+import { GlobalProvider } from "./contexts/GlobalContext";
+import { SocketProvider } from "./contexts/SocketContext";
+// import { socket } from "./socket";
 function App() {
-  return;
-  <UserProvider>
-    <Router>
-      <AppRoutes />
-    </Router>
-  </UserProvider>;
+  return (
+    <SocketProvider>
+      <GlobalProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </GlobalProvider>
+    </SocketProvider>
+  );
 }
 
 export default App;

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useGlobalContext } from "../contexts/GlobalContext";
 import { useNavigate } from "react-router-dom";
+import { useSocket } from "../contexts/SocketContext";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 const RegisterPage = () => {
@@ -9,13 +10,11 @@ const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const socket = useSocket();
   const navigate = useNavigate();
-  const userContext = useGlobalContext();
-  if (!userContext) {
-    return <div>Error: User context is not available</div>;
-  }
-  const { email } = userContext;
-
+  const globalContext = useGlobalContext();
+  const email = globalContext?.email;
+  const setUserId = globalContext?.setUserId;
   const handleRegister = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!email || !password || !confirmPassword) {
@@ -28,22 +27,30 @@ const RegisterPage = () => {
     }
     setError("");
     try {
-      await axios({
-        method: "post",
-        url: `${backendUrl}/api/v1/auth/register`,
-        data: {
+      const response = await axios.post(
+        `${backendUrl}/api/v1/auth/register`,
+        {
           email,
           username,
           password,
           confirmPassword,
         },
-        withCredentials: true,
-      });
-      navigate("/main");
+        { withCredentials: true }
+      );
+      if (response.data.status == "200" && socket) {
+        const userId = response.data.data.userId;
+        socket.emit("register", {
+          userId,
+        });
+        if (setUserId) {
+          setUserId(userId);
+        }
+        navigate("/main");
+      }
     } catch (error) {
       console.error(error);
       setError("Error: internal error at register in");
-      return;
+      navigate("/");
     }
   };
 
@@ -81,6 +88,9 @@ const RegisterPage = () => {
           disabled={!password || !confirmPassword}
         >
           Register
+        </button>
+        <button type='button' onClick={() => navigate("/")}>
+          s Back
         </button>
       </form>
       {error && <p color='red'>{error}</p>}

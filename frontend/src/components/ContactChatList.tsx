@@ -15,10 +15,10 @@ const ChatList = () => {
   const [error, setError] = useState("");
   const [username, setUsername] = useState("");
   const [recentChat, setRecentChat] = useState("");
-  const [contactId, setContactId] = useState("");
-  const [unreadMessageCounter, setUnreadMessageCounter] = useState(0);
-
   const userContext = useGlobalContext();
+  const [unreadMessageCounter, setUnreadMessageCounter] = useState(0);
+  const contactId = userContext?.contactId;
+  const setContactId = userContext?.setContactId;
   const userId = userContext?.userId;
   useEffect(() => {
     setError("");
@@ -42,7 +42,15 @@ const ChatList = () => {
     };
     handelRender();
   }, []);
-  return <></>;
+  return (
+    <>
+      {messageList.map((contact, index) => (
+        <li key={index}>
+          <p>{contact.username}</p>
+        </li>
+      ))}
+    </>
+  );
 };
 
 export default ChatList;

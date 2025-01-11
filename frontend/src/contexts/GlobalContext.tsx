@@ -1,5 +1,6 @@
 import { createContext, useState, useContext } from "react";
 import { ReactNode } from "react";
+import PropTypes from "prop-types";
 
 interface IGlobalContextType {
   userId: string;
@@ -8,6 +9,8 @@ interface IGlobalContextType {
   setEmail: React.Dispatch<React.SetStateAction<string>>;
   socketIsConnected: boolean;
   setSocketIsConnected: React.Dispatch<React.SetStateAction<boolean>>;
+  contactId: string;
+  setContactId: React.Dispatch<React.SetStateAction<string>>;
 }
 interface IGlobalProviderProps {
   children: ReactNode;
@@ -15,9 +18,10 @@ interface IGlobalProviderProps {
 
 const GlobalContext = createContext<IGlobalContextType | null>(null);
 
-export const UserProvider = ({ children }: IGlobalProviderProps) => {
+export const GlobalProvider = ({ children }: IGlobalProviderProps) => {
   const [userId, setUserId] = useState("");
   const [email, setEmail] = useState("");
+  const [contactId, setContactId] = useState("");
   const [socketIsConnected, setSocketIsConnected] = useState(false);
   return (
     <GlobalContext.Provider
@@ -28,6 +32,8 @@ export const UserProvider = ({ children }: IGlobalProviderProps) => {
         setEmail,
         socketIsConnected,
         setSocketIsConnected,
+        contactId,
+        setContactId,
       }}
     >
       {children}
@@ -35,4 +41,14 @@ export const UserProvider = ({ children }: IGlobalProviderProps) => {
   );
 };
 
-export const useGlobalContext = () => useContext(GlobalContext);
+GlobalProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+export const useGlobalContext = () => {
+  const context = useContext(GlobalContext);
+  if (!context) {
+    throw new Error("global context must be used within a UserProvider");
+  }
+  return context;
+};

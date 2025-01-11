@@ -2,10 +2,11 @@ import { Request } from "express";
 import { JwtPayload } from "jsonwebtoken";
 
 export interface IUser {
+  id?: string;
   email: string;
   username: string;
   password: string;
-  contacts: [IContact];
+  contacts: IContact[];
   isActive: boolean;
   sentMessage: [];
   receivedMessage: [];
@@ -18,11 +19,14 @@ export interface IContact {
 }
 
 export interface IMessage {
+  id?: string;
   content: string;
   senderId: string;
   receiverId: string;
-  sender: string;
-  receiver: string;
+  read?: boolean;
+  sent?: boolean;
+  sender: IUser | { id: string; username: string };
+  receiver: IUser | { id: string; username: string };
   createdAt: Date;
 }
 export interface CustomRequest extends Request {

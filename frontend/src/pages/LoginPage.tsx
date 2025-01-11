@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useGlobalContext } from "../contexts/GlobalContext";
-
+import { useSocket } from "../contexts/SocketContext";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 function LoginPage() {
   const [password, setPassword] = useState("");
+  const [isVisible, setIsVisible] = useState("password");
   const [error, setError] = useState("");
+  const socket = useSocket();
   const userContext = useGlobalContext();
   const navigate = useNavigate();
   if (!userContext) {
@@ -32,11 +34,25 @@ function LoginPage() {
         },
         withCredentials: true,
       });
-      setUserId(response.data.data.userId);
-      navigate("/main");
+
+      if (response.data.status == 200 && socket) {
+        const userId = response.data.data.userId;
+        socket.emit("register", {
+          userId,
+        });
+        setUserId(userId);
+        navigate("/main");
+      }
     } catch (error) {
       console.error("Error: error logging in", error);
-      setError("error");
+      if (axios.isAxiosError(error) && error.response) {
+        const status = error.response.status;
+        if (status === 401) {
+          setError("Error: invalid password");
+        } else {
+          setError("Error: Internal server error");
+        }
+      }
     }
   };
 
@@ -46,14 +62,24 @@ function LoginPage() {
       {error && <p style={{ color: "red" }}>{error}</p>}
       <label htmlFor='password'>Password</label>
       <input
-        type='password'
+        type={isVisible}
         name='password'
         onChange={(e) => {
           setPassword(e.target.value);
         }}
+        onMouseEnter={() => setIsVisible("text")}
+        onMouseLeave={() => setIsVisible("password")}
       />
       <button type='submit' onClick={handleLogin} disabled={!password}>
         Login
+      </button>
+      <button
+        type='button'
+        onClick={() => {
+          navigate("/");
+        }}
+      >
+        Back
       </button>
     </form>
   );

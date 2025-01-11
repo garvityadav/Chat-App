@@ -4,7 +4,7 @@
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../config/prisma";
 import { StatusCodes } from "http-status-codes";
-import { CustomRequest, IJsonResponse } from "../interface/interface";
+import { CustomRequest, IJsonResponse, IMessage } from "../interface/interface";
 import { CustomError } from "../error_middleware/error.middleware";
 
 export const sendMessage = async (
@@ -96,7 +96,7 @@ export const getContactsLatestMessages = async (
       throw new CustomError("user not found", StatusCodes.BAD_REQUEST);
     }
 
-    const latestChats = await prisma.message.findMany({
+    const latestChats: IMessage[] = await prisma.message.findMany({
       where: {
         OR: [{ senderId: userId }, { receiverId: userId }],
       },

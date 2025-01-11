@@ -9,10 +9,8 @@ function LandingPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const globalContext = useGlobalContext();
-  if (!globalContext) {
-    return <div>Error: User context is not available</div>;
-  }
-  const { setEmail, email } = globalContext;
+  const setEmail = globalContext?.setEmail;
+  const email = globalContext?.email;
   //checking if user exists
   const checkUserExists = async (email: string): Promise<boolean> => {
     try {
@@ -45,15 +43,16 @@ function LandingPage() {
     e.preventDefault();
     if (!email) {
       setError("Email is required");
-      return;
     }
     setError("");
     try {
-      const userExists = await checkUserExists(email);
-      if (userExists) {
-        navigate("/login");
-      } else {
-        navigate("/register");
+      if (email) {
+        const userExists = await checkUserExists(email);
+        if (userExists) {
+          navigate("/login");
+        } else {
+          navigate("/register");
+        }
       }
     } catch (error) {
       console.error("Error: in HandleNext", error);
@@ -68,8 +67,8 @@ function LandingPage() {
           <label htmlFor='email'>Email</label>
           <input
             type='email'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={email || ""}
+            onChange={(e) => setEmail && setEmail(e.target.value)}
           />
           <button type='submit' disabled={!email}>
             Next

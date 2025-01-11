@@ -3,41 +3,39 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { IMessage } from "../types/message.types";
-import { useMainPageContext } from "../contexts/MainPageContexts";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-const MessageDisplay = () => {
+const ConversationDisplay: React.FC<{
+  userId: string;
+  contactId: string;
+}> = ({ userId }: { userId: string }, { contactId }: { contactId: string }) => {
   const [messages, setMessages] = useState([]);
   const [error, setError] = useState<string>("");
-  const useContext = useMainPageContext();
-  const contactId = useContext ? useContext.contactId : null;
-
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        if (!contactId) {
-          setError("user id not found");
+        if (userId && contactId) {
+          const response = await axios.post(
+            `${backendUrl}/api/v1/conversation/${contactId}`
+          );
+          setMessages(response.data);
         }
-        const response = await axios.post(
-          `${backendUrl}/api/v1/conversation/${contactId}`
-        );
-        setMessages(response.data);
       } catch (error) {
         setError("Error loading conversations");
         console.log(error);
       }
     };
     fetchMessages();
-  }, [contactId]);
+  }, [userId, contactId]);
 
   return (
     <>
       <div>
         {messages.map((message: IMessage, index: number) => (
-          <div key={index}>
+          <li key={index}>
             <p>{message.content}</p>
-          </div>
+          </li>
         ))}
       </div>
       {error && <p style={{ color: "red" }}>{error}</p>}
@@ -45,4 +43,4 @@ const MessageDisplay = () => {
   );
 };
 
-export default MessageDisplay;
+export default ConversationDisplay;
