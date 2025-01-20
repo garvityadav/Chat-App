@@ -15,9 +15,16 @@ interface ITyping {
 }
 
 export const initializeSocket = (httpServer: HttpServer): Server => {
+  const allowedOrigins = [
+    process.env.FRONTEND_URL?.toString(),
+    process.env.POSTMAN_URL?.toString(),
+  ];
+
   const io = new Server(httpServer, {
     cors: {
-      origin: "*",
+      origin: allowedOrigins.filter(
+        (origin): origin is string => origin !== undefined
+      ),
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -27,14 +34,21 @@ export const initializeSocket = (httpServer: HttpServer): Server => {
   const userSocketMap = new Map();
 
   io.on("connection", (socket) => {
-    const timestamp = new Date().toISOString();
-    logger.info(`${timestamp} User connected: ${socket.id}`);
+    const timestamp = new Date().toUTCString();
+    console.log(`${timestamp} User connected: ${socket.id}`);
 
     socket.on("register_user", (userId: string) => {
+      if (!userId) {
+        socket.emit("user_registered", { success: false });
+        return;
+      }
+      console.log(userId);
       userSocketMap.set(userId, socket.id); // Map userId to socket id
       console.log(
         `${userId} is mapped with socket id ${userSocketMap.get(userId)}`
       );
+      console.log(userSocketMap);
+      socket.emit("user_registered", { success: true, userId });
     });
 
     //typing event
@@ -56,7 +70,7 @@ export const initializeSocket = (httpServer: HttpServer): Server => {
     //receive and send message event
     socket.on("send_message", async (data: IData) => {
       try {
-        const { senderId, receiverId, message } = data;
+        const { receiverId } = data;
         const receiverSocketId = userSocketMap.get(receiverId);
         if (receiverSocketId) {
           io.timeout(5000).to(receiverSocketId).emit("send_message", data);

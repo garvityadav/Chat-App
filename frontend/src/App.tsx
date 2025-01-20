@@ -5,13 +5,13 @@ import { SocketProvider } from "./contexts/SocketContext";
 // import { socket } from "./socket";
 function App() {
   return (
-    <SocketProvider>
-      <GlobalProvider>
+    <GlobalProvider>
+      <SocketProvider>
         <Router>
           <AppRoutes />
         </Router>
-      </GlobalProvider>
-    </SocketProvider>
+      </SocketProvider>
+    </GlobalProvider>
   );
 }
 

@@ -22,6 +22,7 @@ export const getUser = async (
 ): Promise<void> => {
   try {
     const { userId } = (req as CustomRequest).user;
+    const { id } = req.query;
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -37,7 +38,9 @@ export const getUser = async (
     const response: IJsonResponse = {
       status: StatusCodes.OK,
       message: "user found",
-      data: { _id: user?.id, email: user?.email, username: user?.username },
+      data: id
+        ? { id: user?.id }
+        : { _id: user?.id, email: user?.email, username: user?.username },
     };
     res.status(StatusCodes.OK).json(response);
   } catch (error) {

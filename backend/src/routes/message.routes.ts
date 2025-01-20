@@ -15,6 +15,6 @@ router.use(authMiddleware);
 router
   .post("/sendMessage", sendMessage)
   .get("/conversation/:id", getUserConversation)
-  .get("/messages", getContactsLatestMessages);
+  .get("/list", getContactsLatestMessages);
 
 export default router;

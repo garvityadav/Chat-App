@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useSocket } from "../contexts/SocketContext";
+import { useSocket } from "../../contexts/SocketContext";
 import { debounce } from "lodash";
 import axios from "axios";
 
@@ -77,7 +77,7 @@ const TypingSpace: React.FC<{ userId: string; contactId: string }> = ({
     }
   };
   return (
-    <>
+    <div style={{ display: "grid" }}>
       {error && <p style={{ color: "red" }}>{error}</p>}
       <input
         type='text'
@@ -87,8 +87,13 @@ const TypingSpace: React.FC<{ userId: string; contactId: string }> = ({
           handleTyping();
         }}
         value={message}
-        placeholder='Type message here ...'
+        placeholder={
+          contactId
+            ? "Type message here ..."
+            : "Click a user to start conversation"
+        }
         aria-label='Message input'
+        disabled={contactId ? false : true}
       />
       <button
         type='submit'
@@ -97,7 +102,7 @@ const TypingSpace: React.FC<{ userId: string; contactId: string }> = ({
       >
         Send
       </button>
-    </>
+    </div>
   );
 };
 

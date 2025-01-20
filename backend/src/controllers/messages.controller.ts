@@ -75,6 +75,9 @@ export const getUserConversation = async (
     const response: IJsonResponse = {
       status: StatusCodes.OK,
       message: "messages found",
+      meta: {
+        count: messages.length,
+      },
       data: messages,
     };
     res.status(StatusCodes.OK).json(response);
@@ -91,7 +94,6 @@ export const getContactsLatestMessages = async (
 ): Promise<void> => {
   try {
     const { userId } = (req as CustomRequest).user;
-    console.log(userId);
     if (!userId) {
       throw new CustomError("user not found", StatusCodes.BAD_REQUEST);
     }

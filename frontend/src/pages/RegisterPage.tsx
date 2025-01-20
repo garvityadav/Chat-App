@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useGlobalContext } from "../contexts/GlobalContext";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "../contexts/SocketContext";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 const RegisterPage = () => {
@@ -10,7 +9,6 @@ const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const socket = useSocket();
   const navigate = useNavigate();
   const globalContext = useGlobalContext();
   const email = globalContext?.email;
@@ -37,11 +35,8 @@ const RegisterPage = () => {
         },
         { withCredentials: true }
       );
-      if (response.data.status == "200" && socket) {
+      if (response.data.status == "200") {
         const userId = response.data.data.userId;
-        socket.emit("register", {
-          userId,
-        });
         if (setUserId) {
           setUserId(userId);
         }

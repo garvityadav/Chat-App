@@ -2,20 +2,18 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useGlobalContext } from "../contexts/GlobalContext";
-import { useSocket } from "../contexts/SocketContext";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 function LoginPage() {
   const [password, setPassword] = useState("");
   const [isVisible, setIsVisible] = useState("password");
   const [error, setError] = useState("");
-  const socket = useSocket();
-  const userContext = useGlobalContext();
+  const useGlobal = useGlobalContext();
   const navigate = useNavigate();
-  if (!userContext) {
+  if (!useGlobal) {
     return <div>Error: User context is not available</div>;
   }
-  const { setUserId, email } = userContext;
+  const { setUserId, email } = useGlobal;
 
   const handleLogin = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -34,12 +32,9 @@ function LoginPage() {
         },
         withCredentials: true,
       });
-
-      if (response.data.status == 200 && socket) {
+      // if successful login
+      if (response.data.status == 200) {
         const userId = response.data.data.userId;
-        socket.emit("register", {
-          userId,
-        });
         setUserId(userId);
         navigate("/main");
       }

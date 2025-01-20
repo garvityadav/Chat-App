@@ -111,7 +111,7 @@ const logger = pino(
     },
     {
       stream: process.stdout,
-      level: "debug",
+      level: "info",
     },
   ])
 );
