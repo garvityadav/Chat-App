@@ -1,20 +1,23 @@
 import { useState } from "react";
 import axios from "axios";
-import LoginPage from "./LoginPage";
-import RegisterPage from "./RegisterPage";
+import { useNavigate } from "react-router-dom";
+import { useGlobalContext } from "../contexts/GlobalContext";
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 function LandingPage() {
-  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
+  const navigate = useNavigate();
+  const globalContext = useGlobalContext();
+  const setEmail = globalContext?.setEmail;
+  const email = globalContext?.email;
   //checking if user exists
   const checkUserExists = async (email: string): Promise<boolean> => {
     try {
       console.log("inside check user exist");
       const response = await axios({
         method: "post",
-        url: "http://localhost:3030/api/v1/auth/check-user",
+        url: `${backendUrl}/api/v1/auth/check-user`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -40,29 +43,22 @@ function LandingPage() {
     e.preventDefault();
     if (!email) {
       setError("Email is required");
-      return;
     }
     setError("");
     try {
-      const userExists = await checkUserExists(email);
-      if (userExists) {
-        setShowLogin(true);
-        setShowRegister(false);
-      } else {
-        setShowRegister(true);
-        setShowLogin(false);
+      if (email) {
+        const userExists = await checkUserExists(email);
+        if (userExists) {
+          navigate("/login");
+        } else {
+          navigate("/register");
+        }
       }
     } catch (error) {
       console.error("Error: in HandleNext", error);
       setError("Error: In handle next fun");
     }
   };
-  if (showLogin) {
-    return <LoginPage email={email} />;
-  }
-  if (showRegister) {
-    return <RegisterPage email={email} />;
-  }
   return (
     <div>
       <form method='POST' onSubmit={handleNext} action=''>
@@ -71,8 +67,8 @@ function LandingPage() {
           <label htmlFor='email'>Email</label>
           <input
             type='email'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={email || ""}
+            onChange={(e) => setEmail && setEmail(e.target.value)}
           />
           <button type='submit' disabled={!email}>
             Next

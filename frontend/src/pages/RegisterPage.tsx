@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useGlobalContext } from "../contexts/GlobalContext";
+import { useNavigate } from "react-router-dom";
 
-const RegisterPage = ({ email }: { email: string }) => {
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+const RegisterPage = () => {
   const [error, setError] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
+  const navigate = useNavigate();
+  const globalContext = useGlobalContext();
+  const email = globalContext?.email;
+  const setUserId = globalContext?.setUserId;
   const handleRegister = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!email || !password || !confirmPassword) {
@@ -19,21 +25,27 @@ const RegisterPage = ({ email }: { email: string }) => {
     }
     setError("");
     try {
-      await axios({
-        method: "post",
-        url: "http://localhost:3030/api/v1/auth/register",
-        data: {
+      const response = await axios.post(
+        `${backendUrl}/api/v1/auth/register`,
+        {
           email,
           username,
           password,
           confirmPassword,
         },
-        withCredentials: true,
-      });
+        { withCredentials: true }
+      );
+      if (response.data.status == "200") {
+        const userId = response.data.data.userId;
+        if (setUserId) {
+          setUserId(userId);
+        }
+        navigate("/main");
+      }
     } catch (error) {
       console.error(error);
       setError("Error: internal error at register in");
-      return;
+      navigate("/");
     }
   };
 
@@ -71,6 +83,9 @@ const RegisterPage = ({ email }: { email: string }) => {
           disabled={!password || !confirmPassword}
         >
           Register
+        </button>
+        <button type='button' onClick={() => navigate("/")}>
+          s Back
         </button>
       </form>
       {error && <p color='red'>{error}</p>}

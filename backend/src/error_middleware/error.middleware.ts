@@ -23,6 +23,7 @@ export const errorMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
+  console.error(err);
   logger.error(err.message);
   const statusCode =
     err instanceof CustomError

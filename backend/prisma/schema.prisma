@@ -25,6 +25,8 @@ model User {
   username        String
   email           String    @unique
   password        String
+  contacts        Contact[] @relation("userContacts") 
+  isActive        Boolean   @default(false)
   sentMessage     Message[] @relation("SentMessages")
   receivedMessage Message[] @relation("ReceivedMessages")
 }
@@ -34,7 +36,18 @@ model Message {
   content    String
   senderId   String
   receiverId String
+  read       Boolean  @default(false)
+  sent       Boolean  @default(true)
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
   receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
   createdAt  DateTime @default(now())
+}
+
+model Contact{
+  id        String @id @default(uuid())
+  userId    String
+  contactId String
+  username  String
+  favorite  Boolean @default(false)
+  User      User @relation("userContacts",fields: [userId],references: [id])
 }
