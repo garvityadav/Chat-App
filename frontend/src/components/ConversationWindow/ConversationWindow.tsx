@@ -5,6 +5,8 @@ import axios from "axios";
 import { IMessage } from "../../types/message.types";
 import SingleChat from "../SingleChat/SingleChat";
 import { useNavigate } from "react-router-dom";
+import IsTyping from "../IsTyping/IsTyping";
+import { ConversationWrapper } from "./ConversationWindowStyles";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const ConversationWindow: React.FC<{
@@ -39,21 +41,14 @@ const ConversationWindow: React.FC<{
 
   return (
     <>
-      <div
-        style={{
-          backgroundColor: contactId ? "white" : "black",
-          border: contactId && userId ? "1px black solid" : "3px solid red",
-          maxWidth: "1920px",
-          maxHeight: "400px",
-          overflow: "scroll",
-        }}
-      >
+      <ConversationWrapper>
         {messages.map((message: IMessage, index: number) => (
           <div key={index}>
             <SingleChat message={message} />
+            <IsTyping />
           </div>
         ))}
-      </div>
+      </ConversationWrapper>
 
       {log && <p style={{ color: "black" }}>{log}</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}

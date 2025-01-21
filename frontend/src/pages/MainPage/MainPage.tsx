@@ -4,12 +4,15 @@
 //
 
 import { useEffect, useState } from "react";
-import ChatWindow from "../components/ChatWindowBox/ChatWindowBox";
-import ChatList from "../components/ConversationList/ConversationList";
-import { useGlobalContext } from "../contexts/GlobalContext";
+import ChatWindow from "../../components/ChatWindowBox/ChatWindowBox";
+import ChatList from "../../components/ConversationList/ConversationList";
+import { useGlobalContext } from "../../contexts/GlobalContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Logout from "../components/Logout/Logout";
+import Logout from "../../components/Logout/Logout";
+import { MainPageWrapper, LeftColumn, RightColumn } from "./MainPageStyles";
+import UserProfile from "../../components/UserProfile/UserProfile";
+import Search from "../../components/Search/Search";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 // section having user name and status
@@ -31,19 +34,23 @@ function MainPage() {
       } catch (error) {
         setError("unauthorized");
         console.log(error);
-        navigate("/");
+        navigate("/error/unauthorize");
       }
     };
     fetchUserId();
   }, [setUserId, navigate]);
 
   return (
-    <div style={{ display: "grid" }}>
+    <MainPageWrapper>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <Logout />
-      <ChatList />
-      {contactId && <ChatWindow />}
-    </div>
+      <LeftColumn>
+        <Search />
+        <ChatList />
+        <UserProfile />
+        <Logout />
+      </LeftColumn>
+      <RightColumn>{contactId && <ChatWindow />}</RightColumn>
+    </MainPageWrapper>
   );
 }
 

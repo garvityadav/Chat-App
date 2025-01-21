@@ -4,6 +4,7 @@
 import ConversationWindow from "../ConversationWindow/ConversationWindow";
 import TypingSpace from "../ChatInputBox/TypingSpace";
 import { useGlobalContext } from "../../contexts/GlobalContext";
+import ChatWindowHeader from "../ChatWindowHeader/ChatWindowHeader";
 
 const ChatWindow = () => {
   const globalContext = useGlobalContext();
@@ -20,6 +21,7 @@ const ChatWindow = () => {
       >
         Close Chat
       </button>
+      <ChatWindowHeader />
       <ConversationWindow userId={userId} contactId={contactId} />
       <TypingSpace userId={userId} contactId={contactId} />
     </div>

@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
-import MainPage from "../pages/MainPage";
+import MainPage from "../pages/MainPage/MainPage";
 import RegisterPage from "../pages/RegisterPage";
 import ErrorPage from "../pages/ErrorPage";
 const AppRoutes = () => {
