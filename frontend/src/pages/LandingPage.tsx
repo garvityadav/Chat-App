@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useGlobalContext } from "../contexts/GlobalContext";
+import { useGlobalContext } from "../contexts/ExportingContexts";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 

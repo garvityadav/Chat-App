@@ -1,19 +1,17 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useGlobalContext } from "../contexts/GlobalContext";
+import { useGlobalContext } from "../contexts/ExportingContexts";
+
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+const sessionDuration = import.meta.env.VITE_SESSION_DURATION;
 
 function LoginPage() {
   const [password, setPassword] = useState("");
   const [isVisible, setIsVisible] = useState("password");
   const [error, setError] = useState("");
-  const useGlobal = useGlobalContext();
+  const { email, setUserId } = useGlobalContext();
   const navigate = useNavigate();
-  if (!useGlobal) {
-    return <div>Error: User context is not available</div>;
-  }
-  const { setUserId, email } = useGlobal;
 
   const handleLogin = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -34,8 +32,9 @@ function LoginPage() {
       });
       // if successful login
       if (response.data.status == 200) {
-        const userId = response.data.data.userId;
-        setUserId(userId);
+        const { userId } = response.data.data;
+        const sessionExpiry = Date.now() + parseInt(sessionDuration);
+        setUserId(userId, sessionExpiry);
         navigate("/main");
       }
     } catch (error) {

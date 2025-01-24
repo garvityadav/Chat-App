@@ -1,15 +1,13 @@
 import { useEffect } from "react";
-import { useGlobalContext } from "../contexts/GlobalContext";
-import { useSocket } from "../contexts/SocketContext";
+import { useGlobalContext, useSocket } from "../contexts/ExportingContexts";
 import { useNavigate } from "react-router-dom";
 
 const Unauthorized = () => {
   const navigate = useNavigate();
-  const { setUserId, setContactId } = useGlobalContext();
+  const { setContactId } = useGlobalContext();
   const socket = useSocket();
   useEffect(() => {
     //clean up logic
-    setUserId("");
     setContactId("");
     socket?.disconnect();
     localStorage.clear();
@@ -29,7 +27,7 @@ const Unauthorized = () => {
     return () => {
       clearTimeout(timer);
     };
-  }, [navigate, setUserId, setContactId, socket]);
+  }, [navigate, setContactId, socket]);
 
   return (
     <div style={{ textAlign: "center", marginTop: "50px", color: "red" }}>

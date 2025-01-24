@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import SingleSideChat from "../SingleSideChat/SingleSideChat";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 interface IContactList {
   contactId: string;
   id: string;
@@ -19,6 +19,7 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL;
 const ChatList = () => {
   const [messageList, setMessageList] = useState<IContactList[]>([]);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
   useEffect(() => {
     setError("");
     const handelRender = async () => {
@@ -29,6 +30,7 @@ const ChatList = () => {
         );
         if (!response) {
           setError("Error retrieving messages");
+          navigate("/error/unauthorize");
         }
         const responseMessageList: IContactList[] = response.data.data;
         setMessageList(responseMessageList);
@@ -38,7 +40,7 @@ const ChatList = () => {
       }
     };
     handelRender();
-  }, []);
+  }, [navigate]);
   return (
     <>
       {error && <p style={{ color: "red" }}>{error}</p>}

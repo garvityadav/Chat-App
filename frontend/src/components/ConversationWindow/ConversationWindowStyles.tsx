@@ -2,7 +2,12 @@ import styled from "styled-components";
 
 export const ConversationWrapper = styled.div`
   display: flex;
-  flex-direction: column-reverse;
+  width: 100%;
+  justify-content: space-between;
+  border: 2px solid black;
+  flex-direction: column;
+  align-items: flex-start;
+  background-color: lightcoral;
   overflow-y: auto;
-  height: 100%;
+  height: 70vh;
 `;

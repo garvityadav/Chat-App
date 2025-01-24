@@ -1,4 +1,4 @@
-import { useGlobalContext } from "../../contexts/GlobalContext";
+import { useGlobalContext } from "../../contexts/ExportingContexts";
 import { useNavigate } from "react-router-dom";
 
 interface IContactList {

@@ -1,7 +1,5 @@
-import React from "react";
-
 const IsTyping = () => {
-  return <div></div>;
+  return <div>Typing</div>;
 };
 
 export default IsTyping;

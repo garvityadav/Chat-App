@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useSocket } from "../../contexts/SocketContext";
+import { useSocket } from "../../contexts/ExportingContexts";
 import { debounce } from "lodash";
 import axios from "axios";
 
@@ -52,21 +52,21 @@ const TypingSpace: React.FC<{ userId: string; contactId: string }> = ({
         const sendMessage = {
           senderId: userId,
           receiverId: contactId,
-          message,
+          content: message,
+          error: false,
           createdAt: Date.now(),
         };
         try {
-          const response = await socket
-            .timeout(5000)
-            .emitWithAck("send_message", sendMessage);
-          setIsLoading(false);
-          if (response.status === "success") {
-            if (message && contactId) {
-              await saveMessageToDatabase(sendMessage);
-              setMessage("");
-            } else {
-              setError("Error sending message , please retry");
-            }
+          if (message && contactId) {
+            await saveMessageToDatabase(sendMessage);
+            socket.timeout(5000).emit("send_message", sendMessage);
+            setIsLoading(false);
+            setMessage("");
+          } else {
+            setError("Error sending message , please retry");
+            sendMessage.error = true;
+            socket.timeout(5000).emit("send_message", sendMessage);
+            setMessage("");
           }
         } catch (error) {
           console.error(error);

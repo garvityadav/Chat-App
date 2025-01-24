@@ -1,18 +1,17 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useGlobalContext } from "../contexts/GlobalContext";
+import { useGlobalContext } from "../contexts/ExportingContexts";
 import { useNavigate } from "react-router-dom";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+const sessionDuration = import.meta.env.VITE_SESSION_DURATION;
 const RegisterPage = () => {
   const [error, setError] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
-  const globalContext = useGlobalContext();
-  const email = globalContext?.email;
-  const setUserId = globalContext?.setUserId;
+  const { email, setUserId } = useGlobalContext();
   const handleRegister = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!email || !password || !confirmPassword) {
@@ -35,11 +34,10 @@ const RegisterPage = () => {
         },
         { withCredentials: true }
       );
-      if (response.data.status == "200") {
-        const userId = response.data.data.userId;
-        if (setUserId) {
-          setUserId(userId);
-        }
+      if (response.data.status == 200) {
+        const { userId } = response.data.data;
+        const sessionExpiry = Date.now() + parseInt(sessionDuration);
+        setUserId(userId, sessionExpiry);
         navigate("/main");
       }
     } catch (error) {

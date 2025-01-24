@@ -8,6 +8,7 @@ export const MainPageWrapper = styled.div`
   height: 100vh;
   background-color: #f9f9f9;
   padding: 16px;
+  /* overflow: hidden; */
 `;
 
 export const LeftColumn = styled.div`
@@ -18,5 +19,5 @@ export const LeftColumn = styled.div`
 export const RightColumn = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100vh;
 `;

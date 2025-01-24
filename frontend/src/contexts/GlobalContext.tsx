@@ -1,28 +1,28 @@
-import { createContext, useState, useContext } from "react";
+import { useState } from "react";
 import { ReactNode } from "react";
 import PropTypes from "prop-types";
-
-interface IGlobalContextType {
-  userId: string;
-  setUserId: React.Dispatch<React.SetStateAction<string>>;
-  email: string;
-  setEmail: React.Dispatch<React.SetStateAction<string>>;
-  socketIsConnected: boolean;
-  setSocketIsConnected: React.Dispatch<React.SetStateAction<boolean>>;
-  contactId: string;
-  setContactId: React.Dispatch<React.SetStateAction<string>>;
-}
+import { GlobalContext } from "./ExportingContexts";
+import { getUser, setUser } from "../utils/Storage";
 interface IGlobalProviderProps {
   children: ReactNode;
 }
 
-const GlobalContext = createContext<IGlobalContextType | null>(null);
-
 export const GlobalProvider = ({ children }: IGlobalProviderProps) => {
-  const [userId, setUserId] = useState("");
   const [email, setEmail] = useState("");
+  const [userId, setUserIdState] = useState(getUser() || "");
   const [contactId, setContactId] = useState("");
   const [socketIsConnected, setSocketIsConnected] = useState(false);
+
+  const setUserId = (id: string, sessionExpiry?: number) => {
+    setUserIdState(id);
+    if (id && sessionExpiry) {
+      setUser(id, sessionExpiry);
+    } else {
+      sessionStorage.removeItem("userid");
+      sessionStorage.removeItem("expiryTime");
+    }
+  };
+
   return (
     <GlobalContext.Provider
       value={{
@@ -45,10 +45,4 @@ GlobalProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-export const useGlobalContext = () => {
-  const context = useContext(GlobalContext);
-  if (!context) {
-    throw new Error("global context must be used within a UserProvider");
-  }
-  return context;
-};
+export default GlobalProvider;

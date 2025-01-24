@@ -3,16 +3,26 @@
 
 import ConversationWindow from "../ConversationWindow/ConversationWindow";
 import TypingSpace from "../ChatInputBox/TypingSpace";
-import { useGlobalContext } from "../../contexts/GlobalContext";
+import { useGlobalContext } from "../../contexts/ExportingContexts";
 import ChatWindowHeader from "../ChatWindowHeader/ChatWindowHeader";
+import { ChatWindowBoxStyles } from "./ChatWindowBoxStyles";
+import { useEffect } from "react";
+import axios from "axios";
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const ChatWindow = () => {
-  const globalContext = useGlobalContext();
-  const userId = globalContext?.userId || "";
-  const contactId = globalContext?.contactId || "";
-  const setContactId = globalContext?.setContactId || "";
+  const { userId, contactId, setContactId } = useGlobalContext();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const response = await axios.get(`${backendUrl}/api/user`);
+    };
+    getUser();
+  }, [contactId]);
+
   return (
-    <div style={{ display: "grid", columnGap: "50px" }}>
+    <ChatWindowBoxStyles>
       <button
         type='button'
         onClick={() => {
@@ -24,7 +34,7 @@ const ChatWindow = () => {
       <ChatWindowHeader />
       <ConversationWindow userId={userId} contactId={contactId} />
       <TypingSpace userId={userId} contactId={contactId} />
-    </div>
+    </ChatWindowBoxStyles>
   );
 };
 

@@ -1,17 +1,17 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { useGlobalContext } from "./GlobalContext";
-
+import { SocketContext, useGlobalContext } from "./ExportingContexts";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 const URL =
   import.meta.env.VITE_NODE_ENV === "production" ? undefined : backendUrl;
 
-const SocketContext = createContext<Socket | null>(null);
-
-export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  const { userId } = useGlobalContext();
+export const SocketProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}): JSX.Element => {
   const [socket, setSocket] = useState<Socket | null>(null);
-
+  const { userId } = useGlobalContext() || "";
   useEffect(() => {
     if (!userId) return;
     const socketIo = io(URL, {
@@ -24,7 +24,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       socketIo.emit("register_user", { userId });
     }
     socketIo.on("user_registered", (data) => {
-      console.log(`user registered: ${data}`);
+      const { userId } = data;
+      console.log(`user registered: ${userId}`);
       console.log(`socket connected to id : ${socketIo.id}`);
     });
     setSocket(socketIo);
@@ -38,6 +39,4 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useSocket = () => {
-  return useContext(SocketContext);
-};
+export default SocketProvider;
