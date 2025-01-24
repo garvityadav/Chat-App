@@ -6,6 +6,7 @@ interface IData {
   senderId: string;
   receiverId: string;
   message: string;
+  error: boolean;
   createdAt: number;
 }
 
@@ -37,12 +38,13 @@ export const initializeSocket = (httpServer: HttpServer): Server => {
     const timestamp = new Date().toUTCString();
     console.log(`${timestamp} User connected: ${socket.id}`);
 
-    socket.on("register_user", (userId: string) => {
+    socket.on("register_user", (data) => {
+      const { userId } = data;
       if (!userId) {
         socket.emit("user_registered", { success: false });
         return;
       }
-      console.log(userId);
+      console.log(`THIS IS USER ID : ${userId}`);
       userSocketMap.set(userId, socket.id); // Map userId to socket id
       console.log(
         `${userId} is mapped with socket id ${userSocketMap.get(userId)}`
@@ -70,15 +72,29 @@ export const initializeSocket = (httpServer: HttpServer): Server => {
     //receive and send message event
     socket.on("send_message", async (data: IData) => {
       try {
-        const { receiverId } = data;
+        const { receiverId, senderId, error } = data;
         const receiverSocketId = userSocketMap.get(receiverId);
-        if (receiverSocketId) {
-          io.timeout(5000).to(receiverSocketId).emit("send_message", data);
-        } else {
-          console.log(`User ${receiverId} is not connected`);
+        const senderSocketId = userSocketMap.get(senderId);
+        if (error == false) {
+          if (receiverSocketId) {
+            io.timeout(5000).to(receiverSocketId).emit("receive_message", data);
+          } else {
+            console.log(`User ${receiverId} is not connected`);
+          }
+          if (senderSocketId) {
+            io.timeout(5000).to(senderSocketId).emit("receive_message", data);
+          } else {
+            console.log(`User ${senderId} is not connected`);
+          }
+        } else if (error) {
+          if (senderSocketId) {
+            io.timeout(5000).to(senderSocketId).emit("receive_message", data);
+          } else {
+            console.log(`User ${senderId} is not connected`);
+          }
         }
       } catch (error) {
-        console.error(error);
+        console.error("Error in sending message Data \n", error);
       }
     });
     socket.on("disconnect", () => {

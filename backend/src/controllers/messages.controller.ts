@@ -70,6 +70,11 @@ export const getUserConversation = async (
           { senderId: contactId, receiverId: userId },
         ],
       },
+      orderBy: { createdAt: "desc" },
+      include: {
+        sender: { select: { id: true, username: true } },
+        receiver: { select: { id: true, username: true } },
+      },
     });
 
     const response: IJsonResponse = {

@@ -16,12 +16,12 @@ import { logger } from "../utils/logger";
 import { CustomRequest, IJsonResponse } from "../interface/interface";
 import { CustomError } from "../error_middleware/error.middleware";
 
-const accessCookieExpireTime = process.env.ACCESS_COOKIE_EXPIRE_TIME
-  ? parseInt(process.env.ACCESS_COOKIE_EXPIRE_TIME, 10)
-  : 15 * 60 * 1000;
-const refreshCookieExpireTime = process.env.REFRESH_COOKIE_EXPIRE_TIME
-  ? parseInt(process.env.REFRESH_COOKIE_EXPIRE_TIME, 10)
-  : 24 * 60 * 60 * 1000;
+// const accessCookieExpireTime = process.env.ACCESS_COOKIE_EXPIRE_TIME
+//   ? parseInt(process.env.ACCESS_COOKIE_EXPIRE_TIME, 10)
+//   : 15 * 60 * 1000;
+// const refreshCookieExpireTime = process.env.REFRESH_COOKIE_EXPIRE_TIME
+//   ? parseInt(process.env.REFRESH_COOKIE_EXPIRE_TIME, 10)
+//   : 24 * 60 * 60 * 1000;
 
 export const registerUser: RequestHandler = async (
   req: Request,
@@ -61,14 +61,12 @@ export const registerUser: RequestHandler = async (
       httpOnly: true, //Prevents Javascript access
       secure: process.env.NODE_ENV === "production", //HTTPS only in production
       sameSite: "strict",
-      maxAge: accessCookieExpireTime,
     });
 
     res.cookie("refresh_token", token.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: refreshCookieExpireTime, //1 day
     });
 
     const response: IJsonResponse = {
@@ -117,14 +115,12 @@ export const loginUser: RequestHandler = async (
       httpOnly: true, //Prevents Javascript access
       secure: process.env.NODE_ENV?.toString() === "production", //HTTPS only in production
       sameSite: "strict",
-      maxAge: accessCookieExpireTime, //15 min
     });
 
     res.cookie("refresh_token", token.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV?.toString() === "production",
       sameSite: "strict",
-      maxAge: refreshCookieExpireTime, //1 day
     });
     const response: IJsonResponse = {
       status: StatusCodes.OK,
