@@ -12,9 +12,13 @@ export interface IUser {
   receivedMessage: [];
 }
 export interface IContact {
-  username: string;
+  id?: string;
   userId: string;
   contactId: string;
+  username: string;
+  isBlocked: boolean;
+  isUnfriend: boolean;
+  createdAt: Date;
   favorite: boolean;
 }
 

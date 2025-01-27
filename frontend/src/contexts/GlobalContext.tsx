@@ -10,7 +10,7 @@ interface IGlobalProviderProps {
 export const GlobalProvider = ({ children }: IGlobalProviderProps) => {
   const [email, setEmail] = useState("");
   const [userId, setUserIdState] = useState(getUser() || "");
-  const [contactId, setContactId] = useState("");
+  const [userUsername, setUserUsername] = useState("");
   const [socketIsConnected, setSocketIsConnected] = useState(false);
 
   const setUserId = (id: string, sessionExpiry?: number) => {
@@ -32,8 +32,8 @@ export const GlobalProvider = ({ children }: IGlobalProviderProps) => {
         setEmail,
         socketIsConnected,
         setSocketIsConnected,
-        contactId,
-        setContactId,
+        userUsername,
+        setUserUsername,
       }}
     >
       {children}

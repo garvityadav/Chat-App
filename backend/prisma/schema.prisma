@@ -48,6 +48,9 @@ model Contact{
   userId    String
   contactId String
   username  String
+  isBlocked Boolean @default(false)
+  isUnfriend Boolean @default(false)
   favorite  Boolean @default(false)
+  createdAt DateTime @default(now())
   User      User @relation("userContacts",fields: [userId],references: [id])
 }

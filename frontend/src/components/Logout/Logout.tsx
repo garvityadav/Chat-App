@@ -1,12 +1,15 @@
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useSocket, useGlobalContext } from "../../contexts/ExportingContexts";
+import { useSocket } from "../../contexts/ExportingContexts";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-const Logout = () => {
+const Logout = ({
+  setContactId,
+}: {
+  setContactId: React.Dispatch<React.SetStateAction<string>>;
+}) => {
   const navigate = useNavigate();
   const socket = useSocket();
-  const { setContactId } = useGlobalContext();
   const cleaning = () => {
     setContactId("");
     socket?.disconnect();

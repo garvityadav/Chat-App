@@ -6,10 +6,10 @@ interface IGlobalContextType {
 
   email: string;
   setEmail: React.Dispatch<React.SetStateAction<string>>;
+  userUsername: string;
+  setUserUsername: React.Dispatch<React.SetStateAction<string>>;
   socketIsConnected: boolean;
   setSocketIsConnected: React.Dispatch<React.SetStateAction<boolean>>;
-  contactId: string;
-  setContactId: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const GlobalContext = createContext<IGlobalContextType | null>(null);

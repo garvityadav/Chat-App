@@ -1,21 +1,22 @@
-import { useGlobalContext } from "../../contexts/ExportingContexts";
 import { useNavigate } from "react-router-dom";
+import { IContactList } from "../ChatList/ChatList";
 
-interface IContactList {
-  contactId: string;
-  id: string;
-  content: string;
-  username: string;
-  read: boolean;
-  createdAt: Date;
-}
-
-const SingleSideChat = ({ message }: { message: IContactList }) => {
+const SingleSideChat = ({
+  setContactId,
+  message,
+}: {
+  message: IContactList;
+  setContactId: React.Dispatch<React.SetStateAction<string>>;
+}) => {
   const navigate = useNavigate();
-  const globalContext = useGlobalContext();
-  const setContactId = globalContext ? globalContext.setContactId : null;
+
   return (
-    <div style={{ backgroundColor: "grey", padding: "10px" }}>
+    <div
+      style={{
+        backgroundColor: message.isContact ? "grey" : "lightgoldenrodyellow",
+        padding: "10px",
+      }}
+    >
       <button
         type='button'
         onClick={() => {

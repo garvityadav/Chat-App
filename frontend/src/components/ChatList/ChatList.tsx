@@ -6,17 +6,22 @@ import { useEffect, useState } from "react";
 import SingleSideChat from "../SingleSideChat/SingleSideChat";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-interface IContactList {
+export interface IContactList {
   contactId: string;
   id: string;
   content: string;
   username: string;
   read: boolean;
   createdAt: Date;
+  isContact: boolean;
 }
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-const ChatList = () => {
+const ChatList = ({
+  setContactId,
+}: {
+  setContactId: React.Dispatch<React.SetStateAction<string>>;
+}) => {
   const [messageList, setMessageList] = useState<IContactList[]>([]);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -46,7 +51,7 @@ const ChatList = () => {
       {error && <p style={{ color: "red" }}>{error}</p>}
       {messageList.map((message, index) => (
         <div key={index}>
-          <SingleSideChat message={message} />
+          <SingleSideChat setContactId={setContactId} message={message} />
         </div>
       ))}
     </>

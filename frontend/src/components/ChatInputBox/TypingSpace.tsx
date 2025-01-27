@@ -8,7 +8,7 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL;
 interface IData {
   senderId: string;
   receiverId: string;
-  message: string;
+  content: string;
   createdAt: number;
 }
 interface ITyping {
@@ -35,15 +35,6 @@ const TypingSpace: React.FC<{ userId: string; contactId: string }> = ({
     }
   }, [socket, userId, contactId]);
 
-  const saveMessageToDatabase = async (data: IData) => {
-    try {
-      await axios.post(`${backendUrl}/api/v1/sendMessage`, data);
-    } catch (error) {
-      console.error(error);
-      setError("Error saving message to the database");
-    }
-  };
-
   const handlingSendingMessages = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
@@ -58,22 +49,33 @@ const TypingSpace: React.FC<{ userId: string; contactId: string }> = ({
         };
         try {
           if (message && contactId) {
-            await saveMessageToDatabase(sendMessage);
+            await axios.post(
+              `${backendUrl}/api/v1/messaging/sendMessage`,
+              sendMessage,
+              {
+                withCredentials: true,
+              }
+            );
             socket.timeout(5000).emit("send_message", sendMessage);
             setIsLoading(false);
             setMessage("");
-          } else {
-            setError("Error sending message , please retry");
-            sendMessage.error = true;
-            socket.timeout(5000).emit("send_message", sendMessage);
-            setMessage("");
           }
         } catch (error) {
+          sendMessage.error = true;
+          setError("Error sending message , please retry");
+          setMessage("");
           console.error(error);
+          socket.timeout(5000).emit("send_message", sendMessage);
           setError("Error sending message");
           setIsLoading(false);
         }
       }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key == "Enter") {
+      handlingSendingMessages(e);
     }
   };
   return (
@@ -86,6 +88,7 @@ const TypingSpace: React.FC<{ userId: string; contactId: string }> = ({
           setMessage(e.target.value);
           handleTyping();
         }}
+        onKeyDown={handleKeyDown}
         value={message}
         placeholder={
           contactId
@@ -95,12 +98,8 @@ const TypingSpace: React.FC<{ userId: string; contactId: string }> = ({
         aria-label='Message input'
         disabled={contactId ? false : true}
       />
-      <button
-        type='submit'
-        onClick={handlingSendingMessages}
-        disabled={isLoading}
-      >
-        Send
+      <button type='submit' disabled={isLoading}>
+        {isLoading ? "Sending..." : "Send"}
       </button>
     </div>
   );

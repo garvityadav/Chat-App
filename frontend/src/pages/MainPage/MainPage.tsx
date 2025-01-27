@@ -5,28 +5,44 @@ import Logout from "../../components/Logout/Logout";
 import { MainPageWrapper, LeftColumn, RightColumn } from "./MainPageStyles";
 import UserProfile from "../../components/UserProfile/UserProfile";
 import Search from "../../components/Search/Search";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 // section having user name and status
-
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 function MainPage() {
-  const { contactId } = useGlobalContext();
+  const { userId, setUserUsername } = useGlobalContext();
+  const [contactId, setContactId] = useState("");
+
   const navigate = useNavigate();
-  const { userId } = useGlobalContext();
   useEffect(() => {
     if (!userId) {
       navigate("/error/unauthorize");
     }
-  }, [userId, navigate]);
+    const fetchUser = async () => {
+      const response = await axios.get(`${backendUrl}/api/v1/user`, {
+        withCredentials: true,
+      });
+      if (response) {
+        const username = response.data.data.username;
+        setUserUsername(username);
+      }
+    };
+    fetchUser();
+  }, [userId, navigate, setUserUsername]);
   return (
     <MainPageWrapper>
       <LeftColumn>
         <Search />
-        <ChatList />
+        <ChatList setContactId={setContactId} />
         <UserProfile />
-        <Logout />
+        <Logout setContactId={setContactId} />
       </LeftColumn>
-      <RightColumn>{contactId && <ChatWindow />}</RightColumn>
+      <RightColumn>
+        {contactId && (
+          <ChatWindow contactId={contactId} setContactId={setContactId} />
+        )}
+      </RightColumn>
     </MainPageWrapper>
   );
 }

@@ -66,6 +66,7 @@ export const verifyToken = (
     ) as ICustomPayload;
     return decodedPayload;
   } catch (error: any) {
+    console.log("error : \n", error);
     if (error.name === "TokenExpiredError") {
       logger.info("Access token expired , Verifying refresh token...");
       try {
@@ -74,7 +75,7 @@ export const verifyToken = (
           refreshToken,
           jwtRefreshKey
         ) as ICustomPayload;
-
+        console.log(decodedRefresh);
         // 3. Create new access token
         const newAccessToken = jwt.sign(
           { id: decodedRefresh.id },
@@ -85,7 +86,6 @@ export const verifyToken = (
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "strict",
-          maxAge: parseInt(cookieAccessExpireTime || "15*60*1000"), //15 min
         });
         logger.info("new access_token cookie created");
         return decodedRefresh;

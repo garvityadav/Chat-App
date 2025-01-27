@@ -4,7 +4,13 @@
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../config/prisma";
 import { StatusCodes } from "http-status-codes";
-import { CustomRequest, IJsonResponse, IMessage } from "../interface/interface";
+import {
+  CustomRequest,
+  IContact,
+  IJsonResponse,
+  IMessage,
+  IUser,
+} from "../interface/interface";
 import { CustomError } from "../error_middleware/error.middleware";
 
 export const sendMessage = async (
@@ -13,21 +19,41 @@ export const sendMessage = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { message, receiverID } = req.body;
-    const { userId } = await (req as CustomRequest).user;
+    const { content: message, receiverId } = req.body;
+    if (!message) {
+      throw new CustomError(
+        "Please provide message! Message cannot be blank.",
+        StatusCodes.BAD_REQUEST
+      );
+    }
+    if (!receiverId) {
+      throw new CustomError("Invalid receiver id", StatusCodes.BAD_REQUEST);
+    }
+    const { userId } = (req as CustomRequest).user;
     if (!userId) {
       throw new CustomError("Invalid user id", StatusCodes.BAD_REQUEST);
     }
-    //check if both user exist
-    const sender = await prisma.user.findUnique({ where: { id: userId } });
-    const receiver = await prisma.user.findUnique({
-      where: { id: receiverID },
+
+    //check if the contact is in the contactList
+    const checkContact = await prisma.contact.findFirst({
+      where: { userId, contactId: receiverId },
     });
-    if (!sender || !receiver) {
-      throw new CustomError("user not found", StatusCodes.BAD_REQUEST);
+    if (!checkContact) {
+      throw new CustomError(
+        "User is not in contact List",
+        StatusCodes.FORBIDDEN
+      );
     }
+
+    if (checkContact.isBlocked) {
+      throw new CustomError(
+        "Contact is no longer available",
+        StatusCodes.FORBIDDEN
+      );
+    }
+
     const messageDoc = await prisma.message.create({
-      data: { content: message, senderId: sender.id, receiverId: receiver.id },
+      data: { content: message, senderId: userId, receiverId },
     });
     const response: IJsonResponse = {
       status: StatusCodes.CREATED,
@@ -35,7 +61,6 @@ export const sendMessage = async (
       data: messageDoc,
     };
     res.status(response.status).json(response);
-    return;
   } catch (error) {
     next(error);
   }
@@ -72,9 +97,12 @@ export const getUserConversation = async (
       },
       orderBy: { createdAt: "desc" },
       include: {
-        sender: { select: { id: true, username: true } },
-        receiver: { select: { id: true, username: true } },
+        sender: { select: { id: true } },
+        receiver: { select: { id: true } },
       },
+    });
+    const contact = await prisma.contact.findFirst({
+      where: { userId, contactId },
     });
 
     const response: IJsonResponse = {
@@ -83,7 +111,7 @@ export const getUserConversation = async (
       meta: {
         count: messages.length,
       },
-      data: messages,
+      data: { messages },
     };
     res.status(StatusCodes.OK).json(response);
     return;
@@ -103,29 +131,44 @@ export const getContactsLatestMessages = async (
       throw new CustomError("user not found", StatusCodes.BAD_REQUEST);
     }
 
-    const latestChats: IMessage[] = await prisma.message.findMany({
+    //grabbing messages
+    const latestChats = await prisma.message.findMany({
       where: {
         OR: [{ senderId: userId }, { receiverId: userId }],
       },
       orderBy: { createdAt: "desc" },
       include: {
-        sender: { select: { id: true, username: true } },
-        receiver: { select: { id: true, username: true } },
+        sender: { select: { id: true } },
+        receiver: { select: { id: true } },
       },
     });
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { contacts: true },
+    });
+
+    if (!user) {
+      throw new CustomError("User not found", StatusCodes.NOT_FOUND);
+    }
+    const contacts = user.contacts;
+
     const distinctContactMessage: any = [];
     const distinctContacts = new Set();
-
     latestChats.forEach((message) => {
       const contactId =
         message.senderId == userId ? message.receiverId : message.senderId;
 
       if (distinctContacts.has(contactId)) return;
       distinctContacts.add(contactId);
-      const username =
-        contactId == message.sender.id
-          ? message.sender.username
-          : message.receiver.username;
+
+      const contact = contacts?.find((contact) => {
+        return contact.contactId == contactId;
+      });
+      const isContact = contact ? true : false;
+      const username = isContact
+        ? contact?.username || "Fetching username..."
+        : "Unknown";
       distinctContactMessage.push({
         contactId,
         id: message.id,
@@ -133,8 +176,10 @@ export const getContactsLatestMessages = async (
         username,
         read: message.read,
         createdAt: message.createdAt,
+        isContact,
       });
     });
+
     const response: IJsonResponse = {
       status: StatusCodes.OK,
       message: "List created",
