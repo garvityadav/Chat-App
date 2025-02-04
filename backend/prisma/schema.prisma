@@ -22,14 +22,30 @@ datasource db {
 
 model User {
   id              String    @id @default(uuid())
-  username        String
+  usernameId      String    @unique
+  username        Username  @relation(fields: [usernameId],references: [id] ,onDelete: Cascade )
   email           String    @unique
   password        String
   contacts        Contact[] @relation("userContacts") 
+  friendRequests   FriendRequest[] @relation("friendRequest")
   isActive        Boolean   @default(false)
   sentMessage     Message[] @relation("SentMessages")
   receivedMessage Message[] @relation("ReceivedMessages")
 }
+
+model Username{
+  id        String  @id @default(uuid())
+  userId    String? @unique  
+  username  String
+  hashTag   String
+  fullName  String  @unique //concat of name and hashtag
+  user      User?   @relation
+  createdAt  DateTime @default(now())
+  @@unique([username,hashTag])
+  @@index([username])
+  @@index([hashTag])
+}
+
 
 model Message {
   id         String   @id @default(uuid())
@@ -53,4 +69,14 @@ model Contact{
   favorite  Boolean @default(false)
   createdAt DateTime @default(now())
   User      User @relation("userContacts",fields: [userId],references: [id])
+}
+
+model FriendRequest{
+  id        String @id @default(uuid())
+  userId    String
+  contactId String
+  accepted  Boolean @default(false)
+  rejected  Boolean @default(false)
+  createdAt DateTime @default(now())  
+  User      User  @relation("friendRequest",fields: [userId],references: [id])
 }

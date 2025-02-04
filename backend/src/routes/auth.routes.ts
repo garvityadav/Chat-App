@@ -13,8 +13,8 @@ const router = Router();
 router
   .get("/logout", authMiddleware, logout)
   .get("/get-users", getUsers)
+  .get("/check-user", checkUser)
   .post("/register", registerUser)
-  .post("/login", loginUser)
-  .post("/check-user", checkUser);
+  .post("/login", loginUser);
 
 export default router;

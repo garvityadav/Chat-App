@@ -64,6 +64,7 @@ export const verifyToken = (
       accessToken,
       jwtAccessKey
     ) as ICustomPayload;
+
     return decodedPayload;
   } catch (error: any) {
     console.log("error : \n", error);

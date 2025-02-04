@@ -50,7 +50,7 @@ const TypingSpace: React.FC<{ userId: string; contactId: string }> = ({
         try {
           if (message && contactId) {
             await axios.post(
-              `${backendUrl}/api/v1/messaging/sendMessage`,
+              `${backendUrl}/messaging/sendMessage`,
               sendMessage,
               {
                 withCredentials: true,

@@ -10,6 +10,7 @@ import cors from "cors";
 import { errorMiddleware } from "./error_middleware/error.middleware";
 import { gracefullyShutdown } from "./config/prisma";
 import { pinoHttpLogger } from "./utils/logger";
+// import { redisInitializeConnection } from "./redis/redis";
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
@@ -39,7 +40,6 @@ app.use(cookieParser());
 
 app.use(pinoHttpLogger);
 // initialize socket io server
-initializeSocket(server);
 
 app.get("/api/status", (req, res) => {
   res.json({ message: "server is running" });
@@ -57,6 +57,12 @@ process.on("SIGINT", () => {
 process.on("SIGTERM", () => {
   gracefullyShutdown("SIGTERM");
 }); // handle kill
-server.listen(PORT, () => {
-  console.log(`server is running on http://localhost:${PORT}`);
-});
+
+const startApp = async () => {
+  initializeSocket(server);
+  // redisInitializeConnection();
+  server.listen(PORT, () => {
+    console.log(`server is running on http://localhost:${PORT}`);
+  });
+};
+startApp();

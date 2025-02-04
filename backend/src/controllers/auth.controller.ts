@@ -15,6 +15,8 @@ import { createToken, ITokens } from "../utils/auth.token";
 import { logger } from "../utils/logger";
 import { CustomRequest, IJsonResponse } from "../interface/interface";
 import { CustomError } from "../error_middleware/error.middleware";
+import Redis from "ioredis";
+// import { redisClient as redis } from "../redis/redis";
 
 // const accessCookieExpireTime = process.env.ACCESS_COOKIE_EXPIRE_TIME
 //   ? parseInt(process.env.ACCESS_COOKIE_EXPIRE_TIME, 10)
@@ -29,7 +31,14 @@ export const registerUser: RequestHandler = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, username, password } = req.body;
+    const { email, username, hashTag, password } = req.body;
+    if (!email || !username || !hashTag || !password) {
+      throw new CustomError(
+        "Please provide all the details",
+        StatusCodes.BAD_REQUEST
+      );
+    }
+
     //check if the user already exists :
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -38,15 +47,26 @@ export const registerUser: RequestHandler = async (
       throw new CustomError("Email already exists", StatusCodes.BAD_REQUEST);
     }
 
+    const fullName = `${username}#${hashTag}`;
     const hashedPassword = await savePassword(password);
+    const usernameDoc = await prisma.username.create({
+      data: {
+        username: username,
+        hashTag: hashTag,
+        fullName: fullName,
+      },
+    });
     const user = await prisma.user.create({
       data: {
         email: email,
-        username: username,
         password: hashedPassword,
+        usernameId: usernameDoc.id,
       },
     });
-
+    await prisma.username.update({
+      where: { id: usernameDoc.id },
+      data: { userId: user.id },
+    });
     // generate token
     const token: ITokens = await createToken({ userId: user.id });
     if (!token) {
@@ -170,22 +190,40 @@ export const checkUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    logger.info("Checking user");
-    const { email } = req.body;
-    if (!email) {
-      throw new CustomError("Email not found", StatusCodes.BAD_REQUEST);
-    }
-    const checkEmail = await prisma.user.findUnique({ where: { email } });
-    if (!checkEmail) {
-      logger.info("Email not found");
-      throw new CustomError("Email not found", StatusCodes.NOT_FOUND);
-    }
+    const { email, username, hashTag } = req.query;
     const response: IJsonResponse = {
       status: StatusCodes.OK,
-      message: "User found",
+      message: "",
     };
+
+    if (email) {
+      const checkEmail = await prisma.user.findUnique({
+        where: { email: email.toString() },
+      });
+      if (!checkEmail) {
+        logger.info("Email not found");
+        throw new CustomError("Email not found", StatusCodes.NOT_FOUND);
+      }
+      response.message = "User Found";
+    } else if (username && hashTag) {
+      const fullName = `${username}#${hashTag}`;
+      // const cachedUsername = await redis.get(fullName);
+      // if (cachedUsername) {
+      //   throw new CustomError("Username unavailable", StatusCodes.CONFLICT);
+      // }
+
+      const checkUsername = await prisma.username.findFirst({
+        where: { hashTag: hashTag.toString(), username: username.toString() },
+      });
+      if (checkUsername) {
+        // await redis.set(fullName, "taken", { EX: 36000 });
+        throw new CustomError("Username unavailable", StatusCodes.CONFLICT);
+      }
+      response.message = "Username available";
+    } else {
+      throw new CustomError("Empty query", StatusCodes.BAD_REQUEST);
+    }
     res.status(StatusCodes.OK).json(response);
-    return;
   } catch (error) {
     next(error);
   }

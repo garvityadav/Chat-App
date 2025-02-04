@@ -12,7 +12,7 @@ const SingleChat: React.FC<{
         userId == message.receiver?.id ? "lightgrey" : "lightgreen"
       } //received chat
       $borderRadius={
-        userId == message.receiver?.id ? "23px 23px 0 23px" : "9px 9px 9px 0"
+        userId == message.sender?.id ? "23px 23px 0 23px" : "9px 9px 9px 0"
       }
       $order={userId == message.receiver?.id ? "2" : "1"}
       $textAlign={userId == message.receiver?.id ? "right" : "left"}

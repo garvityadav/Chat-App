@@ -8,6 +8,7 @@ import Search from "../../components/Search/Search";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Header from "../../components/Header/Header";
 // section having user name and status
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 function MainPage() {
@@ -20,7 +21,7 @@ function MainPage() {
       navigate("/error/unauthorize");
     }
     const fetchUser = async () => {
-      const response = await axios.get(`${backendUrl}/api/v1/user`, {
+      const response = await axios.get(`${backendUrl}/user`, {
         withCredentials: true,
       });
       if (response) {
@@ -39,6 +40,7 @@ function MainPage() {
         <Logout setContactId={setContactId} />
       </LeftColumn>
       <RightColumn>
+        <Header />
         {contactId && (
           <ChatWindow contactId={contactId} setContactId={setContactId} />
         )}

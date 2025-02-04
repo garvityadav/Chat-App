@@ -2,10 +2,11 @@ import { Request } from "express";
 import { JwtPayload } from "jsonwebtoken";
 
 export interface IUser {
-  id?: string;
+  id: string;
   email: string;
   username: string;
   password: string;
+  friendRequests: IFriendRequest[];
   contacts: IContact[];
   isActive: boolean;
   sentMessage: [];
@@ -43,4 +44,13 @@ export interface IJsonResponse<T = any> {
   data?: T;
   errors?: { field?: string; details: string }[];
   meta?: Record<string, any>;
+}
+
+export interface IFriendRequest {
+  id?: string;
+  userId: string;
+  contactId: string;
+  accepted: string;
+  rejected: string;
+  createdAt: Date;
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { SocketContext, useGlobalContext } from "./ExportingContexts";
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
+const backendUrl = import.meta.env.VITE_BACKEND_URL_ONLY;
 const URL =
   import.meta.env.VITE_NODE_ENV === "production" ? undefined : backendUrl;
 

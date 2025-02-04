@@ -40,7 +40,7 @@ const ChatWindow = ({
     const checkContact = async () => {
       try {
         const responseContact = await axios.get(
-          `${backendUrl}/api/v1/user/contacts?contactId=${contactId}`,
+          `${backendUrl}/user/contacts?contactId=${contactId}`,
           { withCredentials: true }
         );
         setContact(responseContact.data.data);
@@ -54,7 +54,7 @@ const ChatWindow = ({
       try {
         if (userId && contactId) {
           const responseMessages = await axios.get(
-            `${backendUrl}/api/v1/messaging/conversation/${contactId}`,
+            `${backendUrl}/messaging/conversation/${contactId}`,
             { withCredentials: true }
           );
           if (responseMessages.data.status === 401) {
@@ -73,6 +73,13 @@ const ChatWindow = ({
 
   return (
     <ChatWindowBoxStyles>
+      {(!isContact && (
+        <>
+          <div>
+            <p>Unknown</p>
+          </div>
+        </>
+      )) || <h3>{contact?.username}</h3>}
       {(!isContact && (
         <div>
           <p>This user is not in your contact list</p>

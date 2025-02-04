@@ -29,10 +29,9 @@ const ChatList = ({
     setError("");
     const handelRender = async () => {
       try {
-        const response = await axios.get(
-          `${backendUrl}/api/v1/messaging/list`,
-          { withCredentials: true }
-        );
+        const response = await axios.get(`${backendUrl}/messaging/list`, {
+          withCredentials: true,
+        });
         if (!response) {
           setError("Error retrieving messages");
           navigate("/error/unauthorize");

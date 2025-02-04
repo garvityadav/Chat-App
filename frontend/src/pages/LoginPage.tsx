@@ -23,7 +23,7 @@ function LoginPage() {
     try {
       const response = await axios({
         method: "post",
-        url: `${backendUrl}/api/v1/auth/login`,
+        url: `${backendUrl}/auth/login`,
         data: {
           email,
           password,

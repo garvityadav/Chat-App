@@ -15,15 +15,10 @@ function LandingPage() {
   const checkUserExists = async (email: string): Promise<boolean> => {
     try {
       console.log("inside check user exist");
-      const response = await axios({
-        method: "post",
-        url: `${backendUrl}/api/v1/auth/check-user`,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: { email },
-        withCredentials: true,
-      });
+      const response = await axios.get(
+        `${backendUrl}/auth/check-user?email=${email}`,
+        { withCredentials: true }
+      );
       console.log("response", response);
       if (!response) {
         setError("Error: User email not found, Please register");

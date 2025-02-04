@@ -31,7 +31,7 @@ export const sendMessage = async (
     }
     const { userId } = (req as CustomRequest).user;
     if (!userId) {
-      throw new CustomError("Invalid user id", StatusCodes.BAD_REQUEST);
+      throw new CustomError("Invalid user id", StatusCodes.NOT_FOUND);
     }
 
     //check if the contact is in the contactList
