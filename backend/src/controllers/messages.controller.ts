@@ -4,13 +4,7 @@
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../config/prisma";
 import { StatusCodes } from "http-status-codes";
-import {
-  CustomRequest,
-  IContact,
-  IJsonResponse,
-  IMessage,
-  IUser,
-} from "../interface/interface";
+import { CustomRequest, IJsonResponse } from "../interface/interface";
 import { CustomError } from "../error_middleware/error.middleware";
 
 export const sendMessage = async (
@@ -31,25 +25,18 @@ export const sendMessage = async (
     }
     const { userId } = (req as CustomRequest).user;
     if (!userId) {
-      throw new CustomError("Invalid user id", StatusCodes.NOT_FOUND);
+      throw new CustomError(
+        "Missing login credential",
+        StatusCodes.UNAUTHORIZED
+      );
     }
-
+    let isContact = false;
     //check if the contact is in the contactList
-    const checkContact = await prisma.contact.findFirst({
-      where: { userId, contactId: receiverId },
+    const isContactBlocked = await prisma.blockedUser.findFirst({
+      where: { userId, blockedUserId: receiverId },
     });
-    if (!checkContact) {
-      throw new CustomError(
-        "User is not in contact List",
-        StatusCodes.FORBIDDEN
-      );
-    }
-
-    if (checkContact.isBlocked) {
-      throw new CustomError(
-        "Contact is no longer available",
-        StatusCodes.FORBIDDEN
-      );
+    if (isContactBlocked) {
+      throw new CustomError("receiver is blocked", StatusCodes.FORBIDDEN);
     }
 
     const messageDoc = await prisma.message.create({
@@ -72,37 +59,26 @@ export const getUserConversation = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const contactId = req.params.id;
+    const receiverId = req.params.id;
 
     const { userId } = (req as CustomRequest).user;
 
     // if no user id
-    if (!contactId) {
-      throw new CustomError("user id not found", StatusCodes.BAD_REQUEST);
-    }
-    const otherUser = await prisma.user.findUnique({
-      where: { id: contactId },
-    });
-    // if no user
-    if (!otherUser) {
-      throw new CustomError("user not found", StatusCodes.NOT_FOUND);
+    if (!receiverId) {
+      throw new CustomError(
+        "requested user id not found",
+        StatusCodes.BAD_REQUEST
+      );
     }
 
     const messages = await prisma.message.findMany({
       where: {
         OR: [
-          { senderId: userId, receiverId: contactId },
-          { senderId: contactId, receiverId: userId },
+          { senderId: userId, receiverId },
+          { senderId: receiverId, receiverId: userId },
         ],
       },
       orderBy: { createdAt: "desc" },
-      include: {
-        sender: { select: { id: true } },
-        receiver: { select: { id: true } },
-      },
-    });
-    const contact = await prisma.contact.findFirst({
-      where: { userId, contactId },
     });
 
     const response: IJsonResponse = {
@@ -128,7 +104,10 @@ export const getContactsLatestMessages = async (
   try {
     const { userId } = (req as CustomRequest).user;
     if (!userId) {
-      throw new CustomError("user not found", StatusCodes.BAD_REQUEST);
+      throw new CustomError(
+        "can't access logged in user's id",
+        StatusCodes.UNAUTHORIZED
+      );
     }
 
     //grabbing messages
@@ -138,37 +117,23 @@ export const getContactsLatestMessages = async (
       },
       orderBy: { createdAt: "desc" },
       include: {
-        sender: { select: { id: true } },
-        receiver: { select: { id: true } },
+        sender: { select: { username: { select: { username: true } } } },
+        receiver: { select: { username: { select: { username: true } } } },
       },
     });
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { contacts: true },
-    });
-
-    if (!user) {
-      throw new CustomError("User not found", StatusCodes.NOT_FOUND);
-    }
-    const contacts = user.contacts;
 
     const distinctContactMessage: any = [];
     const distinctContacts = new Set();
     latestChats.forEach((message) => {
       const contactId =
         message.senderId == userId ? message.receiverId : message.senderId;
-
+      const username =
+        message.senderId == userId
+          ? message.receiver.username.username
+          : message.sender.username.username;
       if (distinctContacts.has(contactId)) return;
       distinctContacts.add(contactId);
 
-      const contact = contacts?.find((contact) => {
-        return contact.contactId == contactId;
-      });
-      const isContact = contact ? true : false;
-      const username = isContact
-        ? contact?.username || "Fetching username..."
-        : "Unknown";
       distinctContactMessage.push({
         contactId,
         id: message.id,
@@ -176,7 +141,6 @@ export const getContactsLatestMessages = async (
         username,
         read: message.read,
         createdAt: message.createdAt,
-        isContact,
       });
     });
 

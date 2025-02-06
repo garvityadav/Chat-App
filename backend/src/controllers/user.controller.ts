@@ -23,19 +23,22 @@ export const getUser = async (
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { username: true },
+      where: { id: userId, isDeleted: false },
     });
     if (!user) {
       throw new CustomError("No user found", StatusCodes.NOT_FOUND);
     }
+    const username = await prisma.username.findUnique({
+      where: { id: user.usernameId },
+    });
+
     const response: IJsonResponse = {
       status: StatusCodes.OK,
       message: "user found",
       data: {
         _id: user?.id,
         email: user?.email,
-        username: user?.username.fullName,
+        username,
       },
     };
     res.status(StatusCodes.OK).json(response);
@@ -51,20 +54,53 @@ export const updateUser = async (
 ): Promise<void> => {
   try {
     const { userId } = (req as CustomRequest).user;
-    const { username } = req.body;
-    const oldPassword = req.body.password;
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const { username, hashTag, password: oldPassword } = req.body;
+    const user = await prisma.user.findUnique({
+      where: { id: userId, isDeleted: false },
+    });
     if (!user) {
       throw new CustomError("user not found", StatusCodes.NOT_FOUND);
     }
     //check if the old password is correct
-    const passwordIsVerified = verifyPassword(oldPassword, user.password);
-    if (!passwordIsVerified) {
-      throw new CustomError("password is incorrect", StatusCodes.UNAUTHORIZED);
+    if (oldPassword) {
+      const passwordIsVerified = await verifyPassword(
+        oldPassword,
+        user.password
+      );
+      if (!passwordIsVerified) {
+        throw new CustomError(
+          "password is incorrect",
+          StatusCodes.UNAUTHORIZED
+        );
+      }
     }
+    if (username && hashTag) {
+      const checkFullNameExist = await prisma.username.findUnique({
+        where: { fullName: `${username}#${hashTag}`, isDeleted: false },
+      });
+      if (checkFullNameExist) {
+        throw new CustomError("Username already taken", StatusCodes.CONFLICT);
+      }
+      const [deleteUsername, newFullName] = await prisma.$transaction([
+        prisma.username.update({
+          where: { id: user.usernameId, isDeleted: false },
+          data: { isDeleted: true },
+        }),
+        prisma.username.create({
+          data: {
+            userId,
+            username,
+            hashTag,
+            fullName: `${username}#${hashTag}`,
+          },
+        }),
+      ]);
+      user.usernameId = newFullName.id;
+    }
+
     await prisma.user.update({
-      where: { id: userId },
-      data: { username },
+      where: { id: userId, isDeleted: false },
+      data: { usernameId: user.usernameId },
     });
     const response: IJsonResponse = {
       status: StatusCodes.OK,
@@ -83,12 +119,20 @@ export const toggleUserStatus = async (
 ): Promise<void> => {
   try {
     const { userId } = (req as CustomRequest).user;
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!userId) {
+      throw new CustomError(
+        "No logged in user id found",
+        StatusCodes.UNAUTHORIZED
+      );
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: userId, isDeleted: false },
+    });
     if (!user) {
       throw new CustomError("user not found", StatusCodes.NOT_FOUND);
     }
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { id: userId, isDeleted: false },
       data: { isActive: !user.isActive },
     });
     const response: IJsonResponse = {
@@ -108,26 +152,27 @@ export const updateContact = async (
 ): Promise<void> => {
   try {
     const userId = (req as CustomRequest).user.userId.toString();
-    const { contactId, username, isBlocked, isUnfriend, favorite } = req.body;
+    const { contactId, username, favorite } = req.body;
     if (!contactId) {
       throw new CustomError(
         "Please provide contact id",
         StatusCodes.BAD_REQUEST
       );
     }
-    const contact = await prisma.contact.findFirst({
-      where: { contactId, userId },
+    const contact = await prisma.contact.findUnique({
+      where: { userId_contactId: { userId, contactId }, isDeleted: false },
     });
     if (!contact) {
       throw new CustomError("contact not found!", StatusCodes.NOT_FOUND);
     }
     const update = {
       username: username ? username : contact.username,
-      isBlocked: isBlocked ? isBlocked : contact.isBlocked,
-      isUnfriend: isUnfriend ? isUnfriend : contact.isUnfriend,
       favorite: favorite ? favorite : contact.favorite,
     };
-    await prisma.contact.update({ where: { id: contact.id }, data: update });
+    await prisma.contact.update({
+      where: { id: contact.id, isDeleted: false },
+      data: update,
+    });
     const response: IJsonResponse = {
       status: StatusCodes.OK,
       message: "contact updated",
@@ -151,25 +196,27 @@ export const getUserContacts = async (
     }
     const { contactId } = req.query;
     const contactList = await prisma.contact.findMany({
-      where: { userId, isBlocked: false, isUnfriend: false },
+      where: { userId, isDeleted: false },
     });
     if (!contactList)
       throw new CustomError(
         "can't fetch user contact list",
         StatusCodes.NOT_FOUND
       );
-
-    const contact = contactList.filter((contact) => {
-      return contact.contactId == contactId;
-    });
-    if (contact.length == 0) {
-      throw new CustomError("no contact found!", StatusCodes.NOT_FOUND);
-    }
     const response: IJsonResponse = {
       status: StatusCodes.OK,
       message: "contact list created",
-      data: contactId ? contact[0] : contactList,
+      data: contactList,
     };
+    if (contactId) {
+      const contact = contactList.filter((contact) => {
+        return contact.contactId == contactId;
+      });
+      if (contact.length == 0) {
+        throw new CustomError("no contact found!", StatusCodes.NOT_FOUND);
+      }
+      response.data = contact;
+    }
     res.status(response.status).json(response);
   } catch (error) {
     next(error);
@@ -196,53 +243,60 @@ export const addContact = async (
         StatusCodes.BAD_REQUEST
       );
     }
-    const contact = await prisma.user.findUnique({
-      where: { id: contactId },
-      include: { username: true },
-    });
-    if (!contact) {
-      throw new CustomError(
-        "No user found with id :" + contactId,
-        StatusCodes.NOT_FOUND
-      );
-    }
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { contacts: true },
-    });
-
-    if (!user) {
-      throw new CustomError(
-        "No user with id: " + userId,
-        StatusCodes.NOT_FOUND
-      );
-    }
-
-    // check if the contact is not already added ?
-    const contacts = user?.contacts;
-    const isFriend = contacts?.some((contact) => {
-      contact.id == contact.contactId;
-    });
-    if (isFriend) {
-      throw new CustomError(
-        "Already added in contact list!",
-        StatusCodes.CONFLICT
-      );
-    }
-    const newContact = await prisma.contact.create({
-      data: {
-        userId: userId,
-        contactId,
-        username: contact.username.username,
+    const checkFriendRequest = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: { senderId: contactId, receiverId: userId },
+        isDeleted: false,
+        accepted: false,
+      },
+      include: {
+        Sender: { select: { usernameId: true } },
       },
     });
+    if (!checkFriendRequest) {
+      throw new CustomError(
+        "No request found , Ask the contact to send a friend request",
+        StatusCodes.NOT_FOUND
+      );
+    }
+
+    //check if user don't already exists
+    const contactExist = await prisma.contact.findUnique({
+      where: { userId_contactId: { userId, contactId }, isDeleted: false },
+    });
+
+    if (contactExist) {
+      throw new CustomError("User already in contact", StatusCodes.CONFLICT);
+    }
+    const senderUsername = await prisma.username.findUnique({
+      where: { id: checkFriendRequest.Sender.usernameId },
+      select: { username: true },
+    });
+    if (!senderUsername) {
+      throw new CustomError("can't fetch username", StatusCodes.NOT_FOUND);
+    }
+    const [addContact, deleteFriendRequest] = await prisma.$transaction([
+      prisma.contact.create({
+        data: {
+          userId,
+          contactId,
+          username: senderUsername.username,
+        },
+      }),
+      prisma.friendRequest.update({
+        where: {
+          id: checkFriendRequest.id,
+        },
+        data: { accepted: true, isDeleted: true },
+      }),
+    ]);
+
     const response: IJsonResponse = {
       status: StatusCodes.CREATED,
       message: "contact created",
-      data: {
-        contactId: newContact.id,
-      },
+      data: { id: addContact.id },
     };
+
     res.status(response.status).json(response);
   } catch (error) {
     next(error);
@@ -256,52 +310,44 @@ export const searchUser = async (
 ): Promise<void> => {
   try {
     const { userId } = (req as CustomRequest).user;
+    const { username, hashTag } = req.query;
     if (!userId) {
       throw new CustomError("Unauthorize", StatusCodes.UNAUTHORIZED);
     }
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { username: true, contacts: true, friendRequests: true },
-    });
-    if (!user) {
-      throw new CustomError(
-        "logged in user not found",
-        StatusCodes.INTERNAL_SERVER_ERROR
-      );
-    }
-    const { username, hashTag } = req.query;
+
     if (!username && !hashTag) {
       throw new CustomError("Please provide username", StatusCodes.BAD_REQUEST);
     }
     const fullName = `${username}#${hashTag}`;
-    console.log(`FULLNAME = ${fullName}`);
-    const userFound = await prisma.username.findFirst({
+    const reqUser = await prisma.username.findFirst({
       where: { fullName },
     });
-    if (!userFound) {
+    if (!reqUser) {
       throw new CustomError(
         `No user with username : ${fullName} found`,
         StatusCodes.NOT_FOUND
       );
     }
-    if (userFound.userId == userId) {
+    if (reqUser.userId == userId) {
       throw new CustomError(
         "Can't search your own Id",
         StatusCodes.BAD_REQUEST
       );
     }
+    const isContact = await prisma.contact.findUnique({
+      where: {
+        userId_contactId: { userId: userId!, contactId: reqUser.userId! },
+        isDeleted: false,
+      },
+    });
     const response: IJsonResponse = {
       message: "user found",
       status: StatusCodes.OK,
       data: {
-        id: userFound.userId,
-        username: userFound.username,
-        requestSend: user.friendRequests.some((friendRequestDoc) => {
-          return userFound.userId == friendRequestDoc.contactId;
-        }),
-        isContact: user.contacts.some((contact) => {
-          return userFound.userId == contact.contactId;
-        }),
+        id: reqUser.id,
+        requestUserId: userId,
+        fullName: reqUser.fullName,
+        isContact: isContact ? true : false,
       },
     };
 
@@ -311,63 +357,43 @@ export const searchUser = async (
   }
 };
 
-export const addFriendRequest = async (
+export const sendFriendRequest = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
     const { userId } = (req as CustomRequest).user;
+    const contactId = req.query.contactId?.toString();
     if (!userId) {
       throw new CustomError(
         "Please provide userId or user not logged in properly",
         StatusCodes.FORBIDDEN
       );
     }
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { contacts: true, friendRequests: true },
-    });
-
-    if (!user) {
-      throw new CustomError(
-        "No user with id: " + userId,
-        StatusCodes.INTERNAL_SERVER_ERROR
-      );
-    }
-    const contactId = req.query.contactId?.toString();
     if (!contactId) {
       throw new CustomError(
         "Please Provide contact id",
         StatusCodes.BAD_REQUEST
       );
     }
-    const contact = await prisma.user.findUnique({
-      where: { id: contactId },
-      include: { username: true },
+    const checkFriendRequests = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: { senderId: userId, receiverId: contactId },
+        isDeleted: false,
+      },
+      include: { Sender: true, Receiver: true },
     });
-    if (!contact) {
-      throw new CustomError(
-        "No user found with id :" + contactId,
-        StatusCodes.NOT_FOUND
-      );
-    }
 
-    // check if the contact is not already added ?
-    const contacts = user?.contacts;
-    const isFriend = contacts?.some((contact) => {
-      contact.id == contact.contactId;
-    });
-    if (isFriend) {
+    if (checkFriendRequests) {
       throw new CustomError(
-        "Already added in contact list!",
+        "Friend request already sent",
         StatusCodes.CONFLICT
       );
     }
-
     const data = {
-      userId,
-      contactId,
+      senderId: userId,
+      receiverId: contactId,
     };
     const friendRequest = await prisma.friendRequest.create({ data });
 
@@ -376,6 +402,73 @@ export const addFriendRequest = async (
       message: "Friend request sent",
       data: friendRequest,
     };
+    res.status(response.status).json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getFriendRequests = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { userId } = (req as CustomRequest).user;
+    const { received, sent } = req.query;
+    if (!received && !sent) {
+      throw new CustomError(
+        "Please send proper query",
+        StatusCodes.BAD_REQUEST
+      );
+    }
+    if (!userId) {
+      throw new CustomError(
+        "Please provide userId or user not logged in properly",
+        StatusCodes.FORBIDDEN
+      );
+    }
+    const response: IJsonResponse = {
+      status: StatusCodes.OK,
+      message: `Friend Request ${
+        received ? "received list created" : "sent list created"
+      } `,
+      data: null,
+    };
+    if (received) {
+      const friendRequestsReceived = await prisma.friendRequest.findMany({
+        where: { receiverId: userId, isDeleted: false, accepted: false },
+        include: {
+          Sender: { select: { username: { select: { fullName: true } } } },
+        },
+      });
+      if (!friendRequestsReceived) {
+        throw new CustomError(
+          "Error occurred while retrieving data",
+          StatusCodes.NOT_FOUND
+        );
+      }
+      response.data = friendRequestsReceived;
+    }
+    if (sent) {
+      const friendRequestsSent = await prisma.friendRequest.findMany({
+        where: { senderId: userId, isDeleted: false, accepted: false },
+        include: {
+          Receiver: {
+            select: {
+              username: { select: { fullName: true } },
+            },
+          },
+        },
+      });
+      if (!friendRequestsSent) {
+        throw new CustomError(
+          "Error occurred while retrieving data",
+          StatusCodes.NOT_FOUND
+        );
+      }
+      response.data = friendRequestsSent;
+    }
     res.status(response.status).json(response);
   } catch (error) {
     next(error);

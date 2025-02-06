@@ -10,7 +10,7 @@ const AddFriend = ({ contactId }: { contactId: string }) => {
     try {
       setError(false);
       const response = await axios.get(
-        `${backendUrl}/user/add-friend-request?contactId=${contactId}`,
+        `${backendUrl}/user/send-friend-request?contactId=${contactId}`,
         { withCredentials: true }
       );
       if (response.status == 201) {

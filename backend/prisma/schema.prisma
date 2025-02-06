@@ -21,14 +21,17 @@ datasource db {
 // }
 
 model User {
-  id              String    @id @default(uuid())
-  usernameId      String    @unique
-  username        Username  @relation(fields: [usernameId],references: [id] ,onDelete: Cascade )
-  email           String    @unique
-  password        String
-  contacts        Contact[] @relation("userContacts") 
-  friendRequests   FriendRequest[] @relation("friendRequest")
+  id                        String    @id @default(uuid())
+  usernameId                String    @unique
+  username                  Username  @relation(fields: [usernameId],references: [id] ,onDelete: Cascade )
+  email                     String    @unique
+  password                  String
+  contacts                  Contact[] @relation("userContacts") 
+  blockedList               BlockedUser[] @relation("blockedUser")
+  friendRequestsSent        FriendRequest[] @relation("friendRequestsSent")
+  friendRequestsReceived    FriendRequest[] @relation("friendRequestsReceived")
   isActive        Boolean   @default(false)
+  isDeleted       Boolean   @default(false)
   sentMessage     Message[] @relation("SentMessages")
   receivedMessage Message[] @relation("ReceivedMessages")
 }
@@ -41,6 +44,7 @@ model Username{
   fullName  String  @unique //concat of name and hashtag
   user      User?   @relation
   createdAt  DateTime @default(now())
+  isDeleted Boolean @default(false)
   @@unique([username,hashTag])
   @@index([username])
   @@index([hashTag])
@@ -54,29 +58,43 @@ model Message {
   receiverId String
   read       Boolean  @default(false)
   sent       Boolean  @default(true)
+  isDeleted  Boolean  @default(false)
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
   receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
   createdAt  DateTime @default(now())
+
 }
 
 model Contact{
   id        String @id @default(uuid())
-  userId    String
-  contactId String
+  userId    String  
+  contactId String  
   username  String
-  isBlocked Boolean @default(false)
-  isUnfriend Boolean @default(false)
   favorite  Boolean @default(false)
   createdAt DateTime @default(now())
+  isDeleted Boolean   @default(false)
   User      User @relation("userContacts",fields: [userId],references: [id])
+  @@unique([userId,contactId])
 }
 
 model FriendRequest{
   id        String @id @default(uuid())
-  userId    String
-  contactId String
+  senderId    String
+  receiverId String 
   accepted  Boolean @default(false)
   rejected  Boolean @default(false)
-  createdAt DateTime @default(now())  
-  User      User  @relation("friendRequest",fields: [userId],references: [id])
+  createdAt DateTime @default(now())
+  isDeleted Boolean @default(false)  
+  Sender      User  @relation("friendRequestsSent",fields: [senderId],references: [id])
+  Receiver   User @relation("friendRequestsReceived",fields: [receiverId],references: [id])  
+  @@unique([senderId,receiverId])
+}
+
+model BlockedUser{
+id              String  @id @default(uuid())
+userId          String
+blockedUserId   String
+isDeleted       Boolean
+createdAt       DateTime  @default(now())
+User            User      @relation("blockedUser",fields: [userId],references: [id])
 }

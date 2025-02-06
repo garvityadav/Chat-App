@@ -1,7 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useGlobalContext } from "../contexts/ExportingContexts";
+import { useGlobalContext } from "../../contexts/ExportingContexts";
+import "./LandingPage.css";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -55,7 +56,7 @@ function LandingPage() {
     }
   };
   return (
-    <div>
+    <div className='flex'>
       <form method='POST' onSubmit={handleNext} action=''>
         <h2>Welcome to chat App</h2>
         <>

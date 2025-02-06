@@ -4,8 +4,8 @@ import DisplayResult from "./DisplayResult/DisplayResult";
 
 export interface IFriendDetail {
   id: string;
-  username: string;
-  requestSend: boolean;
+  requestUserId: string;
+  fullName: string;
   isContact: boolean;
 }
 

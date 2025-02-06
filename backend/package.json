@@ -43,5 +43,6 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
   },
-  "description": ""
+  "description": "",
+  "packageManager": "yarn@4.6.0"
 }

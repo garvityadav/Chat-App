@@ -7,7 +7,8 @@ import {
   addContact,
   updateContact,
   searchUser,
-  addFriendRequest,
+  sendFriendRequest,
+  getFriendRequests,
 } from "../controllers/user.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 const router = Router();
@@ -20,6 +21,7 @@ router
   .post("/update", updateUser)
   .post("/contact/update", updateContact)
   .get("/search-user/", searchUser)
-  .get("/add-friend-request/", addFriendRequest);
+  .get("/send-friend-request/", sendFriendRequest)
+  .get("/friend-requests", getFriendRequests);
 
 export default router;
