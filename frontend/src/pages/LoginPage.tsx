@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useGlobalContext } from "../contexts/ExportingContexts";
@@ -13,6 +13,11 @@ function LoginPage() {
   const { email, setUserId } = useGlobalContext();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!email) {
+      navigate("/");
+    }
+  });
   const handleLogin = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!email || !password) {
@@ -42,40 +47,47 @@ function LoginPage() {
       if (axios.isAxiosError(error) && error.response) {
         const status = error.response.status;
         if (status === 401) {
-          setError("Error: invalid password");
+          setError("Invalid password");
         } else {
-          setError("Error: Internal server error");
+          setError("Internal server error");
         }
       }
     }
   };
 
   return (
-    <form method='POST' onSubmit={handleLogin}>
-      <p>Email: {email}</p>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <label htmlFor='password'>Password</label>
-      <input
-        type={isVisible}
-        name='password'
-        onChange={(e) => {
-          setPassword(e.target.value);
-        }}
-        onMouseEnter={() => setIsVisible("text")}
-        onMouseLeave={() => setIsVisible("password")}
-      />
-      <button type='submit' onClick={handleLogin} disabled={!password}>
-        Login
-      </button>
-      <button
-        type='button'
-        onClick={() => {
-          navigate("/");
-        }}
-      >
-        Back
-      </button>
-    </form>
+    email && (
+      <div>
+        <div className='div-in-center'>
+          <form className='form' method='POST' onSubmit={handleLogin}>
+            <label>Email</label>
+            <input disabled type='text' placeholder={email} />
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            <label htmlFor='password'>Password</label>
+            <input
+              type={isVisible}
+              name='password'
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
+              onMouseEnter={() => setIsVisible("text")}
+              onMouseLeave={() => setIsVisible("password")}
+            />
+            <button type='submit' onClick={handleLogin} disabled={!password}>
+              Login
+            </button>
+            <button
+              type='button'
+              onClick={() => {
+                navigate("/");
+              }}
+            >
+              Back
+            </button>
+          </form>
+        </div>
+      </div>
+    )
   );
 }
 

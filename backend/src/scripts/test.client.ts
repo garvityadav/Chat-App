@@ -1,7 +1,8 @@
 import { io } from "socket.io-client";
 import { logger } from "../utils/logger";
+import { env } from "../utils/env.config";
 
-const socket = io(`${process.env.BACKEND_URL}`, {
+const socket = io(`${env.BACKEND_URL}`, {
   withCredentials: true,
   transports: ["websocket"],
 });

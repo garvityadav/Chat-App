@@ -1,8 +1,7 @@
 import ChatWindow from "../../components/ChatWindowBox/ChatWindowBox";
 import ChatList from "../../components/ChatList/ChatList";
 import { useGlobalContext } from "../../contexts/ExportingContexts";
-import Logout from "../../components/Logout/Logout";
-import { MainPageWrapper, LeftColumn, RightColumn } from "./MainPageStyles";
+import "./MainPageStyles.css";
 import UserProfile from "../../components/UserProfile/UserProfile";
 import Search from "../../components/Search/Search";
 import { useEffect, useState } from "react";
@@ -12,7 +11,7 @@ import Header from "../../components/Header/Header";
 // section having user name and status
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 function MainPage() {
-  const { userId, setUserUsername } = useGlobalContext();
+  const { userId, setUserDetails } = useGlobalContext();
   const [contactId, setContactId] = useState("");
 
   const navigate = useNavigate();
@@ -25,27 +24,23 @@ function MainPage() {
         withCredentials: true,
       });
       if (response) {
-        const username = response.data.data.username;
-        setUserUsername(username);
+        setUserDetails(response.data.data);
       }
     };
     fetchUser();
-  }, [userId, navigate, setUserUsername]);
+  }, []);
   return (
-    <MainPageWrapper>
-      <LeftColumn>
+    userId && (
+      <div className='grid  grid-row-3 h-screen border-2 bg-yellow-400'>
+        <Header />
         <Search />
         <ChatList setContactId={setContactId} />
         <UserProfile />
-        <Logout setContactId={setContactId} />
-      </LeftColumn>
-      <RightColumn>
-        <Header />
         {contactId && (
           <ChatWindow contactId={contactId} setContactId={setContactId} />
         )}
-      </RightColumn>
-    </MainPageWrapper>
+      </div>
+    )
   );
 }
 

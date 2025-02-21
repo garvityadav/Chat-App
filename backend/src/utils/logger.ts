@@ -18,6 +18,7 @@ import {
 } from "fs";
 import { Writable } from "stream";
 import pinoHttp from "pino-http";
+import { env } from "./env.config";
 
 const fsPromises = promises;
 // class for comma separated stream
@@ -89,20 +90,20 @@ try {
 }
 
 //setup for pino logger
-const logFileStream = join(logDirectory, `${process.env.NODE_ENV}.pino.json`);
+const logFileStream = join(logDirectory, `${env.NODE_ENV}.pino.json`);
 const logStream = new CommaSeparatedStream(logFileStream);
 
 //setup for pino http logger
 const pinoHttpLogFileStream = join(
   logDirectory,
-  `${process.env.NODE_ENV}.pino.http.json`
+  `${env.NODE_ENV}.pino.http.json`
 );
 const pinoHttpLogStream = new CommaSeparatedStream(pinoHttpLogFileStream);
 
 //setup pino logger
 const logger = pino(
   {
-    level: process.env.NODE_ENV === "production" ? "info" : "debug",
+    level: env.NODE_ENV === "production" ? "info" : "debug",
   },
   pino.multistream([
     {

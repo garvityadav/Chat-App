@@ -5,12 +5,6 @@ import axios from "axios";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-interface IData {
-  senderId: string;
-  receiverId: string;
-  content: string;
-  createdAt: number;
-}
 interface ITyping {
   senderId: string;
   receiverId: string;

@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import LandingPage from "../pages/LandingPage/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import MainPage from "../pages/MainPage/MainPage";
-import RegisterPage from "../pages/RegisterPage";
+import RegisterPage from "../pages/RegisterPage/RegisterPage";
 import ErrorPage from "../pages/ErrorPage";
 const AppRoutes = () => {
   return (

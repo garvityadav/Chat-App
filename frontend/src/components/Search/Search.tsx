@@ -1,7 +1,10 @@
-import React from "react";
-
 const Search = () => {
-  return <div>Search</div>;
+  return (
+    <div className='flex flex-row p-1'>
+      <div className='m-1'>Search</div>
+      <div className='m-1'>Icon</div>
+    </div>
+  );
 };
 
 export default Search;

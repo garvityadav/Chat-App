@@ -15,7 +15,7 @@ import { createToken, ITokens } from "../utils/auth.token";
 import { logger } from "../utils/logger";
 import { CustomRequest, IJsonResponse } from "../interface/interface";
 import { CustomError } from "../error_middleware/error.middleware";
-import Redis from "ioredis";
+import { env } from "../utils/env.config";
 // import { redisClient as redis } from "../redis/redis";
 
 // const accessCookieExpireTime = process.env.ACCESS_COOKIE_EXPIRE_TIME
@@ -79,13 +79,13 @@ export const registerUser: RequestHandler = async (
     //set cookie
     res.cookie("access_token", token.accessToken, {
       httpOnly: true, //Prevents Javascript access
-      secure: process.env.NODE_ENV === "production", //HTTPS only in production
+      secure: env.NODE_ENV === "production", //HTTPS only in production
       sameSite: "strict",
     });
 
     res.cookie("refresh_token", token.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: env.NODE_ENV === "production",
       sameSite: "strict",
     });
 
@@ -133,13 +133,13 @@ export const loginUser: RequestHandler = async (
     //set cookie
     res.cookie("access_token", token.accessToken, {
       httpOnly: true, //Prevents Javascript access
-      secure: process.env.NODE_ENV?.toString() === "production", //HTTPS only in production
+      secure: env.NODE_ENV?.toString() === "production", //HTTPS only in production
       sameSite: "strict",
     });
 
     res.cookie("refresh_token", token.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV?.toString() === "production",
+      secure: env.NODE_ENV?.toString() === "production",
       sameSite: "strict",
     });
     const response: IJsonResponse = {
@@ -164,12 +164,12 @@ export const logout: RequestHandler = (
     const { userId } = (req as CustomRequest).user;
     res.clearCookie("access_token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: env.NODE_ENV === "production",
       sameSite: "strict",
     });
     res.clearCookie("refresh_token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: env.NODE_ENV === "production",
       sameSite: "strict",
     });
     const response: IJsonResponse = {

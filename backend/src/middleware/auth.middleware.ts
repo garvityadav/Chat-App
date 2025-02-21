@@ -15,7 +15,6 @@ export const authMiddleware: RequestHandler = (
       refresh_cookie: req.cookies.refresh_token,
     };
     // if(cookies.access_cookie.exp())
-    console.log("COOKIES ON SERVER : ", cookies);
     if (!cookies.access_cookie || !cookies.refresh_cookie) {
       res.status(StatusCodes.UNAUTHORIZED).json({
         message: "Unauthorize access",
@@ -35,7 +34,6 @@ export const authMiddleware: RequestHandler = (
       );
     }
     (req as CustomRequest).user = decode;
-    console.log("Called auth", decode);
     next();
   } catch (error) {
     next(error);

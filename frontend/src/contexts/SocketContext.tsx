@@ -1,9 +1,19 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { SocketContext, useGlobalContext } from "./ExportingContexts";
+import axios from "axios";
 const backendUrl = import.meta.env.VITE_BACKEND_URL_ONLY;
 const URL =
   import.meta.env.VITE_NODE_ENV === "production" ? undefined : backendUrl;
+const toggleStatus = async (status: string) => {
+  try {
+    await axios.get(`${backendUrl}/api/v1/user/status?status=${status}`, {
+      withCredentials: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 export const SocketProvider = ({
   children,
@@ -11,7 +21,7 @@ export const SocketProvider = ({
   children: React.ReactNode;
 }): JSX.Element => {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const { userId } = useGlobalContext() || "";
+  const { userId } = useGlobalContext();
   useEffect(() => {
     if (!userId) return;
     const socketIo = io(URL, {
@@ -25,6 +35,9 @@ export const SocketProvider = ({
     }
     socketIo.on("user_registered", (data) => {
       const { userId } = data;
+
+      //toggle user online status
+      toggleStatus("online");
       console.log(`user registered: ${userId}`);
       console.log(`socket connected to id : ${socketIo.id}`);
     });

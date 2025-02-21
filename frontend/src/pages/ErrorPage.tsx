@@ -12,7 +12,6 @@ const Unauthorized = () => {
     sessionStorage.clear();
     document.cookie.split(";").forEach((cookie) => {
       const cookieName = cookie.split("=")[0];
-      console.log(cookieName);
       document.cookie = `${cookieName}=;expires=${new Date(
         0
       ).toUTCString()};path=/;`;

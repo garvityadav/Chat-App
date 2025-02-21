@@ -1,13 +1,34 @@
 import { useContext, createContext } from "react";
 import { Socket } from "socket.io-client";
+
+export interface IContact {
+  id?: string;
+  userId: string;
+  contactId: string;
+  username: string;
+  isBlocked: boolean;
+  isUnfriend: boolean;
+  createdAt: Date;
+  favorite: boolean;
+}
+export interface IUser {
+  email: string;
+  username: string;
+  password: string;
+  contacts: IContact[];
+  isActive: boolean;
+  sentMessage: [];
+  receivedMessage: [];
+}
+
 interface IGlobalContextType {
   userId: string;
   setUserId: (id: string, sessionExpiry?: number) => void;
 
   email: string;
   setEmail: React.Dispatch<React.SetStateAction<string>>;
-  userUsername: string;
-  setUserUsername: React.Dispatch<React.SetStateAction<string>>;
+  userDetails: IUser | undefined;
+  setUserDetails: React.Dispatch<React.SetStateAction<IUser | undefined>>;
   socketIsConnected: boolean;
   setSocketIsConnected: React.Dispatch<React.SetStateAction<boolean>>;
 }

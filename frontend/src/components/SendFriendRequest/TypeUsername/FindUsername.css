@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+
+.input {
+    @apply w-26 p-3 shadow-purple-500 shadow-lg
+}
+
+.label {
+    @apply p-3
+}
+
+.counter {
+    @apply p-4
+}

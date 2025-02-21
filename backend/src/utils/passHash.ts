@@ -1,9 +1,10 @@
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import { env } from "./env.config";
 
 dotenv.config();
 
-const saltRound: number = parseInt(`${process.env.SALTROUND}`) || 10;
+const saltRound: number = parseInt(env.SALT_ROUND) || 10;
 
 export const savePassword = async (password: string) => {
   try {

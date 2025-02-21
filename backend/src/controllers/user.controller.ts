@@ -7,9 +7,8 @@ import {
   IUser,
 } from "../interface/interface";
 import { StatusCodes } from "http-status-codes";
-import { savePassword, verifyPassword } from "../utils/passHash";
+import { verifyPassword } from "../utils/passHash";
 import { CustomError } from "../error_middleware/error.middleware";
-import { includes } from "lodash";
 
 export const getUser = async (
   req: Request,
@@ -24,21 +23,19 @@ export const getUser = async (
 
     const user = await prisma.user.findUnique({
       where: { id: userId, isDeleted: false },
+      include: { username: true },
     });
     if (!user) {
       throw new CustomError("No user found", StatusCodes.NOT_FOUND);
     }
-    const username = await prisma.username.findUnique({
-      where: { id: user.usernameId },
-    });
-
     const response: IJsonResponse = {
       status: StatusCodes.OK,
       message: "user found",
       data: {
         _id: user?.id,
         email: user?.email,
-        username,
+        username: user.username.username,
+        isActive: user.isActive,
       },
     };
     res.status(StatusCodes.OK).json(response);
@@ -125,6 +122,16 @@ export const toggleUserStatus = async (
         StatusCodes.UNAUTHORIZED
       );
     }
+    const status = req.query.status?.toString().toLowerCase();
+    console.log(status);
+    if (!status) {
+      throw new CustomError(
+        "please provide status query",
+        StatusCodes.BAD_REQUEST
+      );
+    }
+    const toggleStatus =
+      status == "online" ? true : status == "offline" ? false : false;
     const user = await prisma.user.findUnique({
       where: { id: userId, isDeleted: false },
     });
@@ -133,11 +140,12 @@ export const toggleUserStatus = async (
     }
     const updatedUser = await prisma.user.update({
       where: { id: userId, isDeleted: false },
-      data: { isActive: !user.isActive },
+      data: { isActive: toggleStatus },
     });
     const response: IJsonResponse = {
       status: StatusCodes.OK,
       message: "user status updated",
+      data: { id: userId, status: updatedUser.isActive },
     };
     res.status(StatusCodes.OK).json(response);
   } catch (error) {
@@ -330,7 +338,7 @@ export const searchUser = async (
     }
     if (reqUser.userId == userId) {
       throw new CustomError(
-        "Can't search your own Id",
+        "why are you searching your own username ?",
         StatusCodes.BAD_REQUEST
       );
     }
@@ -340,14 +348,22 @@ export const searchUser = async (
         isDeleted: false,
       },
     });
+    const friendRequestCheck = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          senderId: userId,
+          receiverId: reqUser.userId!.toString(),
+        },
+      },
+    });
     const response: IJsonResponse = {
       message: "user found",
       status: StatusCodes.OK,
       data: {
-        id: reqUser.id,
-        requestUserId: userId,
+        reqUserId: reqUser.userId,
         fullName: reqUser.fullName,
         isContact: isContact ? true : false,
+        friendRequest: friendRequestCheck ? true : false,
       },
     };
 
@@ -392,8 +408,8 @@ export const sendFriendRequest = async (
       );
     }
     const data = {
-      senderId: userId,
       receiverId: contactId,
+      senderId: userId,
     };
     const friendRequest = await prisma.friendRequest.create({ data });
 

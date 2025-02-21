@@ -1,17 +1,12 @@
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "../../contexts/ExportingContexts";
+import { useGlobalContext, useSocket } from "../../contexts/ExportingContexts";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-const Logout = ({
-  setContactId,
-}: {
-  setContactId: React.Dispatch<React.SetStateAction<string>>;
-}) => {
+const Logout = () => {
   const navigate = useNavigate();
   const socket = useSocket();
   const cleaning = () => {
-    setContactId("");
     socket?.disconnect();
     localStorage.clear();
     sessionStorage.clear();
@@ -22,12 +17,16 @@ const Logout = ({
       ).toUTCString()};path=/;`;
     });
     if (socket?.disconnected) {
+      useGlobalContext()
       navigate("/");
     }
   };
   const handleLogout = async () => {
     try {
-      await axios.get(`${backendUrl}/api/v1/auth/logout`, {
+      await axios.get(`${backendUrl}/user/status?status=offline`, {
+        withCredentials: true,
+      });
+      await axios.get(`${backendUrl}/auth/logout`, {
         withCredentials: true,
       });
       cleaning();

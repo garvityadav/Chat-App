@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import { Server as HttpServer } from "node:http";
 import { logger } from "../utils/logger";
+import { env } from "../utils/env.config";
 
 interface IData {
   senderId: string;
@@ -17,8 +18,8 @@ interface ITyping {
 
 export const initializeSocket = (httpServer: HttpServer): Server => {
   const allowedOrigins = [
-    process.env.FRONTEND_URL?.toString(),
-    process.env.POSTMAN_URL?.toString(),
+    env.FRONTEND_URL?.toString(),
+    env.POSTMAN_URL?.toString(),
   ];
 
   const io = new Server(httpServer, {
@@ -44,12 +45,8 @@ export const initializeSocket = (httpServer: HttpServer): Server => {
         socket.emit("user_registered", { success: false });
         return;
       }
-      console.log(`THIS IS USER ID : ${userId}`);
+
       userSocketMap.set(userId, socket.id); // Map userId to socket id
-      console.log(
-        `${userId} is mapped with socket id ${userSocketMap.get(userId)}`
-      );
-      console.log(userSocketMap);
       socket.emit("user_registered", { success: true, userId });
     });
 

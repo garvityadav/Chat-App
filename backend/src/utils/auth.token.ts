@@ -1,12 +1,11 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Response } from "express";
 import { logger } from "../utils/logger";
-const jwtAccessKey = process.env.JWT_PRIVATE_ACCESS_KEY || "";
-const jwtRefreshKey = process.env.JWT_PRIVATE_REFRESH_KEY || "";
-const jwtAccessExpireTime = process.env.JWT_ACCESS_EXPIRE_TIME || "1d";
-const jwtRefreshExpireTime = process.env.JWT_REFRESH_EXPIRE_TIME || "7d";
-const cookieAccessExpireTime = process.env.ACCESS_COOKIE_EXPIRE_TIME;
-const cookieRefreshExpireTime = process.env.REFRESH_COOKIE_EXPIRE_TIME;
+import { env } from "./env.config";
+const jwtAccessKey: jwt.Secret = env.JWT_PRIVATE_ACCESS_KEY;
+const jwtRefreshKey: jwt.Secret = env.JWT_PRIVATE_REFRESH_KEY;
+const jwtAccessExpireTime = "1d";
+const jwtRefreshExpireTime = "7d";
 
 export interface ITokens {
   accessToken: string;
@@ -67,7 +66,6 @@ export const verifyToken = (
 
     return decodedPayload;
   } catch (error: any) {
-    console.log("error : \n", error);
     if (error.name === "TokenExpiredError") {
       logger.info("Access token expired , Verifying refresh token...");
       try {
@@ -76,7 +74,7 @@ export const verifyToken = (
           refreshToken,
           jwtRefreshKey
         ) as ICustomPayload;
-        console.log(decodedRefresh);
+
         // 3. Create new access token
         const newAccessToken = jwt.sign(
           { id: decodedRefresh.id },
@@ -85,7 +83,7 @@ export const verifyToken = (
         );
         res.cookie("access_token", newAccessToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: env.NODE_ENV === "production",
           sameSite: "strict",
         });
         logger.info("new access_token cookie created");

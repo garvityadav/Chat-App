@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
 import { createServer } from "node:http";
 import authRoutes from "./routes/auth.routes";
 import messageRoutes from "./routes/message.routes";
@@ -10,8 +11,8 @@ import cors from "cors";
 import { errorMiddleware } from "./error_middleware/error.middleware";
 import { gracefullyShutdown } from "./config/prisma";
 import { pinoHttpLogger } from "./utils/logger";
+import { env } from "./utils/env.config";
 // import { redisInitializeConnection } from "./redis/redis";
-dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -19,8 +20,8 @@ const app = express();
 // create HTTP server
 const server = createServer(app);
 const allowedOrigins = [
-  process.env.FRONTEND_URL?.toString(),
-  process.env.POSTMAN_URL?.toString(),
+  env.FRONTEND_URL?.toString(),
+  env.POSTMAN_URL?.toString(),
 ];
 app.use(
   cors({

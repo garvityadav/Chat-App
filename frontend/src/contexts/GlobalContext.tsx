@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ReactNode } from "react";
 import PropTypes from "prop-types";
-import { GlobalContext } from "./ExportingContexts";
+import { GlobalContext, IUser } from "./ExportingContexts";
 import { getUser, setUser } from "../utils/Storage";
 interface IGlobalProviderProps {
   children: ReactNode;
@@ -10,7 +10,7 @@ interface IGlobalProviderProps {
 export const GlobalProvider = ({ children }: IGlobalProviderProps) => {
   const [email, setEmail] = useState("");
   const [userId, setUserIdState] = useState(getUser() || "");
-  const [userUsername, setUserUsername] = useState("");
+  const [userDetails, setUserDetails] = useState<IUser>();
   const [socketIsConnected, setSocketIsConnected] = useState(false);
 
   const setUserId = (id: string, sessionExpiry?: number) => {
@@ -32,8 +32,8 @@ export const GlobalProvider = ({ children }: IGlobalProviderProps) => {
         setEmail,
         socketIsConnected,
         setSocketIsConnected,
-        userUsername,
-        setUserUsername,
+        userDetails,
+        setUserDetails,
       }}
     >
       {children}

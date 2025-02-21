@@ -13,7 +13,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
-    "@tailwindcss/vite": "^4.0.3",
+    "@tailwindcss/postcss": "^4.0.5",
     "@types/prop-types": "^15.7.14",
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",
@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@tailwindcss/vite": "^4.0.5",
     "@types/lodash": "^4.17.14",
     "@types/node": "^22.10.5",
     "@types/react": "^18.3.17",
@@ -37,11 +38,10 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.13.0",
     "lodash": "^4.17.21",
-    "postcss": "^8.5.1",
-    "tailwindcss": "^4.0.3",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^4.0.6",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.1",
     "vite": "^6.0.3"
-  },
-  "packageManager": "yarn@4.6.0"
+  }
 }

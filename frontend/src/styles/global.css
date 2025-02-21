@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@layer base {
+    input {
+        @apply p-1 m-1 border-amber-400 w-sm shadow-lg shadow-purple-500
+    }
+
+    input:focus {
+        @apply outline-purple-500 outline-2
+    }
+
+    label {
+        @apply m-1 font-medium
+    }
+
+    button {
+        @apply m-1 block p-1 bg-purple-500 transition delay-50 rounded w-sm;
+    }
+
+    button:hover {
+        @apply bg-purple-400
+    }
+
+
+}
+
+.form {
+    @apply flex flex-col p-6 bg-yellow-300 shadow-xl rounded-xl w-auto h-auto
+}
+
+.div-in-center {
+    @apply flex items-center justify-center w-auto h-screen bg-purple-500
+}

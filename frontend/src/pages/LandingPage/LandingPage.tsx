@@ -1,34 +1,35 @@
-import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useGlobalContext } from "../../contexts/ExportingContexts";
-import "./LandingPage.css";
+import { getUser } from "../../utils/Storage";
+import { useEffect } from "react";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 function LandingPage() {
-  const [error, setError] = useState("");
   const navigate = useNavigate();
   const globalContext = useGlobalContext();
   const setEmail = globalContext?.setEmail;
   const email = globalContext?.email;
+  const userId = getUser();
   //checking if user exists
+  useEffect(() => {
+    if (userId) {
+      navigate("/main");
+    }
+  });
   const checkUserExists = async (email: string): Promise<boolean> => {
     try {
-      console.log("inside check user exist");
       const response = await axios.get(
         `${backendUrl}/auth/check-user?email=${email}`,
         { withCredentials: true }
       );
-      console.log("response", response);
-      if (!response) {
-        setError("Error: User email not found, Please register");
-        return false;
+      if (response.status == 200) {
+        return true;
       }
-      return true;
+      return false;
     } catch (error) {
       console.error("error checking user exist ", error);
-      setError("Error: internal error in checking user exist");
       return false;
     }
   };
@@ -37,10 +38,7 @@ function LandingPage() {
   const handleNext = async (e: React.FormEvent): Promise<void> => {
     //checking if user exist
     e.preventDefault();
-    if (!email) {
-      setError("Email is required");
-    }
-    setError("");
+
     try {
       if (email) {
         const userExists = await checkUserExists(email);
@@ -52,27 +50,29 @@ function LandingPage() {
       }
     } catch (error) {
       console.error("Error: in HandleNext", error);
-      setError("Error: In handle next fun");
     }
   };
   return (
-    <div className='flex'>
-      <form method='POST' onSubmit={handleNext} action=''>
-        <h2>Welcome to chat App</h2>
-        <>
-          <label htmlFor='email'>Email</label>
-          <input
-            type='email'
-            value={email || ""}
-            onChange={(e) => setEmail && setEmail(e.target.value)}
-          />
-          <button type='submit' disabled={!email}>
-            Next
-          </button>
-        </>
-      </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </div>
+    !userId && (
+      <div className='flex flex-row'>
+        <div className='w-1/2'>SIDE PAGE</div>
+        <div className='flex flex-col items-center justify-center w-1/2 h-screen bg-yellow-300'>
+          <h1 className='block text-2xl text-black-299 '>Welcome</h1>
+          <form className='form' method='POST' onSubmit={handleNext}>
+            <label htmlFor='email'>Email</label>
+            <input
+              type='email'
+              value={email || ""}
+              placeholder='example@xyz.com'
+              onChange={(e) => setEmail && setEmail(e.target.value)}
+            />
+            <button type='submit' disabled={!email}>
+              Next
+            </button>
+          </form>
+        </div>
+      </div>
+    )
   );
 }
 
