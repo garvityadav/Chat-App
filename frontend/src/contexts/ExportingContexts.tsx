@@ -33,9 +33,22 @@ interface IGlobalContextType {
   setSocketIsConnected: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface IThemeContextType {
+  darkMode: boolean;
+  toggleTheme: () => void;
+}
+
 export const GlobalContext = createContext<IGlobalContextType | null>(null);
 export const SocketContext = createContext<Socket | null>(null);
+export const ThemeContext = createContext<IThemeContextType | undefined>(
+  undefined
+);
 
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) throw new Error("useTheme must be used within theme provider");
+  return context;
+};
 export const useGlobalContext = () => {
   const context = useContext(GlobalContext);
   if (!context) {

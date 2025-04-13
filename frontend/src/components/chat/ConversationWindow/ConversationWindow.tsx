@@ -4,7 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import SingleChat from "../SingleChat/SingleChat";
 import IsTyping from "../IsTyping/IsTyping";
 import { ConversationWrapper } from "./ConversationWindowStyles";
-import { useSocket, useGlobalContext } from "../../contexts/ExportingContexts";
+import {
+  useSocket,
+  useGlobalContext,
+} from "../../../contexts/ExportingContexts";
 import { IsTypingStyle } from "../IsTyping/IsTypingStyle";
 import { IMessage } from "../ChatWindowBox/ChatWindowBox";
 

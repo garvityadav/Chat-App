@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useGlobalContext, useSocket } from "../../contexts/ExportingContexts";
+import { useSocket } from "../../../contexts/ExportingContexts";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 const Logout = () => {
@@ -17,7 +17,6 @@ const Logout = () => {
       ).toUTCString()};path=/;`;
     });
     if (socket?.disconnected) {
-      useGlobalContext()
       navigate("/");
     }
   };

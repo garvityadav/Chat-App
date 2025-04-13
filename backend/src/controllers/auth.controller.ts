@@ -196,6 +196,8 @@ export const checkUser = async (
       message: "",
     };
 
+    console.log(email, username, hashTag);
+
     if (email) {
       const checkEmail = await prisma.user.findUnique({
         where: { email: email.toString() },

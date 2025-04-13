@@ -1,6 +1,7 @@
 import { SingleChatStyle } from "./SingleChatStyles";
-import { useGlobalContext } from "../../contexts/ExportingContexts";
+
 import { IMessage } from "../ChatWindowBox/ChatWindowBox";
+import { useGlobalContext } from "../../../contexts/ExportingContexts";
 const SingleChat: React.FC<{
   message: IMessage;
   username: string;

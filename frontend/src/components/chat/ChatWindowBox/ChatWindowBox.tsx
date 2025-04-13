@@ -1,7 +1,7 @@
 import TypingSpace from "../ChatInputBox/TypingSpace";
-import { useGlobalContext } from "../../contexts/ExportingContexts";
+
+import { useGlobalContext } from "../../../contexts/ExportingContexts";
 import ChatWindowHeader from "../ChatWindowHeader/ChatWindowHeader";
-import { ChatWindowBoxStyles } from "./ChatWindowBoxStyles";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -72,7 +72,7 @@ const ChatWindow = ({
   }, [userId, contactId, navigate]);
 
   return (
-    <ChatWindowBoxStyles>
+    <>
       {(!isContact && (
         <>
           <div>
@@ -116,7 +116,7 @@ const ChatWindow = ({
       ) : (
         <TypingSpace userId={userId} contactId={contactId} />
       )}
-    </ChatWindowBoxStyles>
+    </>
   );
 };
 

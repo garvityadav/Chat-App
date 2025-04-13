@@ -464,6 +464,7 @@ export const getFriendRequests = async (
           StatusCodes.NOT_FOUND
         );
       }
+
       response.data = friendRequestsReceived;
     }
     if (sent) {

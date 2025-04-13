@@ -85,6 +85,7 @@ const FindUsername: React.FC<TypeUsernameProps> = ({
         className='input'
         type='text'
         name='username'
+        placeholder='username'
         id='username'
         maxLength={8}
         minLength={4}
@@ -100,6 +101,7 @@ const FindUsername: React.FC<TypeUsernameProps> = ({
         maxLength={4}
         minLength={4}
         name='hashTag'
+        placeholder='hash-tag'
         id='hashTag'
         onChange={handleChange}
       />

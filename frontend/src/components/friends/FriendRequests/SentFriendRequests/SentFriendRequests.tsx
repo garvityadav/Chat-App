@@ -3,9 +3,9 @@ import { IFriendRequests } from "../FriendRequests";
 const SentFriendRequests = ({ data }: { data: IFriendRequests }) => {
   const handleResponse = async () => {};
   return (
-    <div>
+    <div className='grid grid-cols-2 w-sm items-center m-2'>
       {data.Receiver?.username.fullName}
-      <button onClick={handleResponse} type='button'>
+      <button className='w-1/2' onClick={handleResponse} type='button'>
         Delete
       </button>
     </div>
