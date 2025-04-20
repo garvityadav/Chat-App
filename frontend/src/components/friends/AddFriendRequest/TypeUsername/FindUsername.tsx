@@ -1,7 +1,8 @@
 import axios from "axios";
 import React, { SetStateAction, useState } from "react";
 import { IFriendDetail } from "../AddFriendRequest";
-import "./FindUsername.css";
+import { Search } from "lucide-react";
+
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 interface TypeUsernameProps {
@@ -77,48 +78,45 @@ const FindUsername: React.FC<TypeUsernameProps> = ({
     }
   };
   return (
-    <form className='flex flex-row' onKeyDown={handleKeyDown}>
-      <label className='label' htmlFor='username'>
-        Username
-      </label>
-      <input
-        className='input'
-        type='text'
-        name='username'
-        placeholder='username'
-        id='username'
-        maxLength={8}
-        minLength={4}
-        onChange={handleChange}
-      />
-      <span className='counter'>{8 - formData.username.length}</span>
-      <label className='label' htmlFor='hashTag'>
-        #
-      </label>
-      <input
-        className='input'
-        type='text'
-        maxLength={4}
-        minLength={4}
-        name='hashTag'
-        placeholder='hash-tag'
-        id='hashTag'
-        onChange={handleChange}
-      />
-      <span className='counter'>{4 - formData.hashTag.length}</span>
-      <svg
-        xmlns='http://www.w3.org/2000/svg'
-        viewBox='0 0 16 16'
-        fill='currentColor'
-        className='size-6 hover:invert relative m-4'
-        onClick={handleRequest}
-      >
-        <path
-          fillRule='evenodd'
-          d='M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z'
-          clipRule='evenodd'
-        />
-      </svg>
+    <form className='flex flex-col' onKeyDown={handleKeyDown}>
+      <div className='flex flex-row gap-2 items-center justify-between'>
+        <label className='label' htmlFor='username'>
+          Username
+        </label>
+        <div className='flex gap-2 p-2'>
+          <input
+            className='border-b focus:outline-none '
+            type='text'
+            name='username'
+            placeholder='username'
+            id='username'
+            maxLength={8}
+            minLength={4}
+            onChange={handleChange}
+          />
+          <span className='counter'>{8 - formData.username.length}</span>
+        </div>
+      </div>
+      <div className='flex flex-row gap-2 items-center justify-between'>
+        <label className='label' htmlFor='hashTag'>
+          Hash Tag
+        </label>
+
+        <div className='flex gap-2 p-2'>
+          <input
+            className='border-b focus:outline-none'
+            type='text'
+            maxLength={4}
+            minLength={4}
+            name='hashTag'
+            placeholder='hash-tag'
+            id='hashTag'
+            onChange={handleChange}
+          />
+          <span className='counter'>{4 - formData.hashTag.length}</span>
+        </div>
+      </div>
+      <button className='border-b p-2 m-t-2'>Search</button>
     </form>
   );
 };

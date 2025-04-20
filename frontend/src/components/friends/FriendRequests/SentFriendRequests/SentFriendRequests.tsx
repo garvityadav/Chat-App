@@ -1,12 +1,27 @@
 import { IFriendRequests } from "../FriendRequests";
+import { Trash2 } from "lucide-react";
 
 const SentFriendRequests = ({ data }: { data: IFriendRequests }) => {
+  const fullName = data.Receiver?.username.fullName;
   const handleResponse = async () => {};
   return (
-    <div className='flex flex-row w-sm items-center m-2'>
-      {data.Receiver?.username.fullName}
-      <button className='w-1/2' onClick={handleResponse} type='button'>
-        Delete
+    <div
+      className='flex flex-row justify-between item-center gap-2 m-2 scroll-auto border-b 
+       border-gray-200
+       pb-2'
+    >
+      {fullName ? (
+        <p title={fullName}>{fullName.split("#")[0]}</p>
+      ) : (
+        <p title='Unknown User'>Unknown User</p>
+      )}
+      <button
+        title='Delete'
+        className='cursor-pointer'
+        onClick={handleResponse}
+        type='button'
+      >
+        <Trash2 size={20} />
       </button>
     </div>
   );

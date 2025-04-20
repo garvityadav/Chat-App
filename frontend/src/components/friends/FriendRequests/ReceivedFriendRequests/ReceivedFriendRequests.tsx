@@ -50,10 +50,11 @@ const ReceivedFriendRequests = ({ data }: { data: IFriendRequests }) => {
             className='cursor-pointer'
             onClick={handleAddFriend}
             type='button'
+            title='Accept'
           >
             <UserPlus size={20} />
           </button>
-          <button className='cursor-pointer'>
+          <button className='cursor-pointer' title='Delete'>
             <Trash2 size={20} />
           </button>
         </div>

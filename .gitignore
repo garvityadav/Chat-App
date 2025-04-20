@@ -4,9 +4,9 @@ node_modules
 nodemon.json
 *package-lock.json
 prisma/migrations
-*logsDir
 
 # Logs
+*logsDir
 logs
 *.log
 npm-debug.log*

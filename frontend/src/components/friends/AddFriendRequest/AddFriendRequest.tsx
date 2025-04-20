@@ -13,20 +13,13 @@ const SendFriendRequest = () => {
   const [error, setError] = useState("");
 
   return (
-    <div>
-      <div>
-        <FindUsername setError={setError} setFriendDetail={setFriendDetail} />
-        {error && (
-          <span className='hove-modal absolute transform translate-x-1/2 left-1/2'>
-            {error}
-          </span>
-        )}
-        {friendDetail && (
-          <div className='hover-modal absolute m-10 left-20'>
-            <DisplayResult friendDetail={friendDetail} />
-          </div>
-        )}
-      </div>
+    <div className='flex flex-col p-2  m-3'>
+      <FindUsername setError={setError} setFriendDetail={setFriendDetail} />
+      {friendDetail && (
+        <div className=''>
+          <DisplayResult friendDetail={friendDetail} />
+        </div>
+      )}
     </div>
   );
 };

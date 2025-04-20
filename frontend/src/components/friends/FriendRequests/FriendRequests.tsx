@@ -30,7 +30,6 @@ const FriendRequests = () => {
           }
         );
         if (response.status == 200) {
-          console.log(response.data.data);
           setReceiveRequests(response.data.data);
         }
       } catch (error) {
@@ -58,44 +57,47 @@ const FriendRequests = () => {
     <div className=' flex flex-col'>
       <div className='grid grid-cols-2 text-center w-sm'>
         <div
-          className={activeTab == "sent" ? "border-2" : ""}
-          onClick={() => {
-            setActiveTab("sent");
-          }}
-        >
-          Sent
-        </div>
-        <div
-          className={activeTab == "received" ? "border-2" : ""}
+          className={activeTab == "received" ? "border-b p-1" : "p-1"}
           onClick={() => {
             setActiveTab("received");
           }}
         >
           Received
         </div>
+        <div
+          className={activeTab == "sent" ? "border-b p-1" : "p-1"}
+          onClick={() => {
+            setActiveTab("sent");
+          }}
+        >
+          Sent
+        </div>
 
         {/* displayed results */}
       </div>
-      <div className='p-2 flex flex-col gap-2'>
-        {activeTab == "send" &&
-          sentRequests &&
-          sentRequests.map((request) => {
-            return (
-              <div key={request.id}>
-                <SentFriendRequests data={request} />
-              </div>
-            );
-          })}
-
-        {activeTab == "received" &&
-          receiveRequests &&
-          receiveRequests.map((request) => {
-            return (
-              <div key={request.id}>
-                <ReceivedFriendRequests data={request} />
-              </div>
-            );
-          })}
+      <div className='p-3'>
+        {activeTab == "sent" && sentRequests && (
+          <div className='flex flex-col  gap-2 max-h-64 overflow-y-auto pr-2'>
+            {sentRequests.map((request) => {
+              return (
+                <div key={request.id}>
+                  <SentFriendRequests data={request} />
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {activeTab == "received" && receiveRequests && (
+          <div className='flex   flex-col gap-2 max-h-64 overflow-y-auto pr-2'>
+            {receiveRequests.map((request) => {
+              return (
+                <div key={request.id}>
+                  <ReceivedFriendRequests data={request} />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
