@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { SetStateAction, useState } from "react";
-import { IFriendDetail } from "../SendFriendRequest";
+import { IFriendDetail } from "../AddFriendRequest";
 import "./FindUsername.css";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 

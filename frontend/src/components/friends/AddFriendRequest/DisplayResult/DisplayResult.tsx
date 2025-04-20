@@ -1,4 +1,4 @@
-import { IFriendDetail } from "../SendFriendRequest";
+import { IFriendDetail } from "../AddFriendRequest";
 import AddFriend from "./AddFriend/AddFriendRequest";
 
 const DisplayResult = ({

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "../../../contexts/ExportingContexts";
-
+import { Power } from "lucide-react";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 const Logout = () => {
   const navigate = useNavigate();
@@ -36,7 +36,12 @@ const Logout = () => {
   };
   return (
     <div>
-      <button type='button' onClick={handleLogout}>
+      <button
+        className='flex flex-1/2 gap-1 cursor-pointer'
+        type='button'
+        onClick={handleLogout}
+      >
+        <Power />
         Logout
       </button>
     </div>

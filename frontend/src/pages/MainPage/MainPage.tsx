@@ -1,4 +1,4 @@
-import UserProfile from "../../components/UserProfile/UserProfile";
+import UserStatusCard from "../../components/UserProfile/UserStatusCard";
 import Search from "../../components/chat/Search/Search";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,14 +7,13 @@ import Header from "../../components/ui/Header/Header";
 import { useGlobalContext, useTheme } from "../../contexts/ExportingContexts";
 import ChatList from "../../components/chat/ChatList/ChatList";
 import ChatWindow from "../../components/chat/ChatWindowBox/ChatWindowBox";
-import { Moon, Sun } from "lucide-react";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 function MainPage() {
   const { userId, setUserDetails } = useGlobalContext();
   const [contactId, setContactId] = useState("");
-  const { darkMode, toggleTheme } = useTheme();
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,24 +38,16 @@ function MainPage() {
         }`}
       >
         {/* Left Sidebar */}
-        <div className='w-1/4 flex flex-col border-r dark:border-gray-700 bg-white dark:bg-gray-800'>
-          <Header>
-            <button
-              type='button'
-              onClick={toggleTheme}
-              aria-label='Toggle dark mode'
-            >
-              {darkMode ? <Sun /> : <Moon />}
-            </button>
-          </Header>
+        <div className='w-1/4 flex flex-col border-r relative dark:border-gray-700 bg-white dark:bg-gray-800'>
+          <Header />
 
           <div className='p-4 border-b dark:border-gray-700'>
             <Search />
           </div>
 
           <ChatList setContactId={setContactId} />
-          <div className='p-4 border-t dark:border-gray-700'>
-            <UserProfile />
+          <div className='absolute bottom-0 left-0 w-full p-4'>
+            <UserStatusCard />
           </div>
         </div>
         {/* Main chat Area */}

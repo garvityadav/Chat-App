@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import ReceivedFriendRequests from "./ReceivedFriendRequests/ReceivedFriendRequests";
 import SentFriendRequests from "./SentFriendRequests/SentFriendRequests";
 
@@ -15,42 +15,10 @@ export interface IFriendRequests {
   Receiver?: { username: { fullName: string } };
   Sender?: { username: { fullName: string } };
 }
-const FriendRequests = ({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) => {
+const FriendRequests = () => {
   const [sentRequests, setSentRequests] = useState<IFriendRequests[]>();
   const [receiveRequests, setReceiveRequests] = useState<IFriendRequests[]>();
-  const [toggleSentSection, setToggleSentSection] = useState(false);
-  const [toggleReceivedSection, setToggleReceivedSection] = useState(true);
-
-  const modalRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const handleKeydown = (event: KeyboardEvent) => {
-      if (event.key == "Escape") {
-        onClose();
-      }
-    };
-    const handleMouseDown = (event: MouseEvent) => {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeydown);
-      document.addEventListener("mousedown", handleMouseDown);
-    }
-    return () => {
-      document.removeEventListener("keydown", handleKeydown);
-      document.removeEventListener("mousedown", handleMouseDown);
-    };
-  }, [onClose, isOpen]);
+  const [activeTab, setActiveTab] = useState("received");
 
   useEffect(() => {
     const fetchFriendRequestsReceived = async () => {
@@ -86,35 +54,30 @@ const FriendRequests = ({
     fetchFriendRequestSent();
   }, []);
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className='hover-overlay'>
-      <div className='hover-modal absolute top-10 '>
-        <div className='grid grid-cols-2 text-center w-sm'>
-          <div
-            className={toggleSentSection ? "border-2" : ""}
-            onClick={() => {
-              setToggleSentSection(true);
-              setToggleReceivedSection(false);
-            }}
-          >
-            Sent
-          </div>
-          <div
-            className={toggleReceivedSection ? "border-2" : ""}
-            onClick={() => {
-              setToggleSentSection(false);
-              setToggleReceivedSection(true);
-            }}
-          >
-            Received
-          </div>
+    <div className=' flex flex-col'>
+      <div className='grid grid-cols-2 text-center w-sm'>
+        <div
+          className={activeTab == "sent" ? "border-2" : ""}
+          onClick={() => {
+            setActiveTab("sent");
+          }}
+        >
+          Sent
+        </div>
+        <div
+          className={activeTab == "received" ? "border-2" : ""}
+          onClick={() => {
+            setActiveTab("received");
+          }}
+        >
+          Received
         </div>
 
-        {toggleSentSection &&
+        {/* displayed results */}
+      </div>
+      <div className='p-2 flex flex-col gap-2'>
+        {activeTab == "send" &&
           sentRequests &&
           sentRequests.map((request) => {
             return (
@@ -124,7 +87,7 @@ const FriendRequests = ({
             );
           })}
 
-        {toggleReceivedSection &&
+        {activeTab == "received" &&
           receiveRequests &&
           receiveRequests.map((request) => {
             return (
