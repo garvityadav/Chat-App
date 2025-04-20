@@ -431,17 +431,17 @@ export const getFriendRequests = async (
 ): Promise<void> => {
   try {
     const { userId } = (req as CustomRequest).user;
+    if (!userId) {
+      throw new CustomError(
+        "Please provide userId or user not logged in properly",
+        StatusCodes.FORBIDDEN
+      );
+    }
     const { received, sent } = req.query;
     if (!received && !sent) {
       throw new CustomError(
         "Please send proper query",
         StatusCodes.BAD_REQUEST
-      );
-    }
-    if (!userId) {
-      throw new CustomError(
-        "Please provide userId or user not logged in properly",
-        StatusCodes.FORBIDDEN
       );
     }
     const response: IJsonResponse = {
