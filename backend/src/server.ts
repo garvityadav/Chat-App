@@ -9,8 +9,8 @@ import cookieParser from "cookie-parser";
 import { initializeSocket } from "./socket/socket";
 import cors from "cors";
 import { errorMiddleware } from "./error_middleware/error.middleware";
-import { gracefullyShutdown } from "./config/prisma";
-import { pinoHttpLogger } from "./utils/logger";
+import { gracefullyShutdown, prisma } from "./config/prisma";
+import { logger, pinoHttpLogger } from "./utils/logger";
 import { env } from "./utils/env.config";
 // import { redisInitializeConnection } from "./redis/redis";
 
@@ -60,10 +60,17 @@ process.on("SIGTERM", () => {
 }); // handle kill
 
 const startApp = async () => {
-  initializeSocket(server);
-  // redisInitializeConnection();
-  server.listen(PORT, () => {
-    console.log(`server is running on http://localhost:${PORT}`);
-  });
+  try {
+    await prisma.$connect();
+    logger.info("db connected...");
+    initializeSocket(server);
+
+    server.listen(PORT, () => {
+      console.log(`server is running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.log("Failed to start the server", error);
+    process.exit(1);
+  }
 };
 startApp();

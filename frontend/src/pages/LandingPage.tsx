@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { getUser } from "../../utils/Storage";
+import { getUser } from "../utils/Storage";
 import { useEffect, useState } from "react";
-import { useGlobalContext } from "../../contexts/ExportingContexts";
+import { useGlobalContext } from "../contexts/ExportingContexts";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 

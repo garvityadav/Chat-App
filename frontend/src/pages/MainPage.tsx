@@ -1,12 +1,12 @@
-import UserStatusCard from "../../components/UserProfile/UserStatusCard";
-import Search from "../../components/chat/Search/Search";
+import UserStatusCard from "../components/UserProfile/UserStatusCard";
+import Search from "../components/chat/Search/Search";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Header from "../../components/ui/Header/Header";
-import { useGlobalContext, useTheme } from "../../contexts/ExportingContexts";
-import ChatList from "../../components/chat/ChatList/ChatList";
-import ChatWindow from "../../components/chat/ChatWindowBox/ChatWindowBox";
+import Header from "../components/ui/Header/Header";
+import { useGlobalContext, useTheme } from "../contexts/ExportingContexts";
+import ChatList from "../components/chat/ChatList/ChatList";
+import ChatWindow from "../components/chat/ChatWindowBox/ChatWindowBox";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
