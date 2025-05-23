@@ -1,7 +1,6 @@
 import axios from "axios";
 import React, { SetStateAction, useState } from "react";
 import { IFriendDetail } from "../AddFriendRequest";
-import { Search } from "lucide-react";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -66,19 +65,9 @@ const FindUsername: React.FC<TypeUsernameProps> = ({
       console.log(error);
     }
   };
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key == "Enter") {
-      if (`${formData.username}#${formData.hashTag}` == cache) {
-        return;
-      }
-      if (!formData.username || !formData.hashTag) {
-        return;
-      }
-      handleRequest(e);
-    }
-  };
+
   return (
-    <form className='flex flex-col' onKeyDown={handleKeyDown}>
+    <form className='flex flex-col' onSubmit={handleRequest}>
       <div className='flex flex-row gap-2 items-center justify-between'>
         <label className='label' htmlFor='username'>
           Username
@@ -116,7 +105,10 @@ const FindUsername: React.FC<TypeUsernameProps> = ({
           <span className='counter'>{4 - formData.hashTag.length}</span>
         </div>
       </div>
-      <button className='border-b p-2 m-t-2'>Search</button>
+
+      <button type='submit' className='border-b p-2 m-t-2 cursor-pointer'>
+        Search
+      </button>
     </form>
   );
 };

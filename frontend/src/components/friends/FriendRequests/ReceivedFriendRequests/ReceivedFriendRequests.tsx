@@ -1,26 +1,46 @@
 import axios from "axios";
 import { IFriendRequests } from "../FriendRequests";
 import { useEffect, useState } from "react";
-import { Trash2, UserPlus } from "lucide-react";
+import { Check, Trash2, UserPlus } from "lucide-react";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-const ReceivedFriendRequests = ({ data }: { data: IFriendRequests }) => {
+const ReceivedFriendRequests = ({
+  data,
+  refreshMainList,
+}: {
+  data: IFriendRequests;
+  refreshMainList: () => void;
+}) => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
   const fullName = data.Sender?.username.fullName;
 
   useEffect(() => {
+    let refetchTimerId: NodeJS.Timeout;
+    let timerId: NodeJS.Timeout;
+    if (success) {
+      refetchTimerId = setTimeout(() => {
+        refreshMainList();
+        setSuccess(false);
+      }, 3000);
+    }
     if (error) {
-      const timer = setTimeout(() => {
+      timerId = setTimeout(() => {
         setError(false);
       }, 3000);
-      return () => clearTimeout(timer);
     }
-  }, [error]);
+    return () => {
+      clearTimeout(timerId);
+      clearTimeout(refetchTimerId);
+    };
+  }, [success, error, refreshMainList]);
+
+  //handleRequest
   const handleAddFriend = async () => {
     try {
       setError(false);
+      console.log(data);
       const response = await axios.get(
-        `${backendUrl}/user/add-contact/${data.contactId}`,
+        `${backendUrl}/user/add-contact/${data.senderId}`,
         {
           withCredentials: true,
         }
@@ -62,7 +82,11 @@ const ReceivedFriendRequests = ({ data }: { data: IFriendRequests }) => {
       {error && (
         <p className='text-red-600  font-semibold'>Error adding friend</p>
       )}
-      {success && <p className='text-green-400 font-semibold'>Friend Added!</p>}
+      {success && (
+        <p className=''>
+          <Check />
+        </p>
+      )}
     </div>
   );
 };

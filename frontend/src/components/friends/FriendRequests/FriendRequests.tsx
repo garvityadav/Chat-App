@@ -7,7 +7,8 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL;
 export interface IFriendRequests {
   id: string;
   userId: string;
-  contactId: string;
+  senderId: string;
+  receiverId: string;
   accepted: boolean;
   rejected: boolean;
   createdAt: Date;
@@ -19,36 +20,35 @@ const FriendRequests = () => {
   const [sentRequests, setSentRequests] = useState<IFriendRequests[]>();
   const [receiveRequests, setReceiveRequests] = useState<IFriendRequests[]>();
   const [activeTab, setActiveTab] = useState("received");
-
+  const fetchFriendRequestsReceived = async () => {
+    try {
+      const response = await axios.get(
+        `${backendUrl}/user/friend-requests?received=true`,
+        {
+          withCredentials: true,
+        }
+      );
+      if (response.status == 200) {
+        setReceiveRequests(response.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const fetchFriendRequestSent = async () => {
+    try {
+      const response = await axios.get(
+        `${backendUrl}/user/friend-requests?sent=true`,
+        { withCredentials: true }
+      );
+      if (response.status == 200) {
+        setSentRequests(response.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
   useEffect(() => {
-    const fetchFriendRequestsReceived = async () => {
-      try {
-        const response = await axios.get(
-          `${backendUrl}/user/friend-requests?received=true`,
-          {
-            withCredentials: true,
-          }
-        );
-        if (response.status == 200) {
-          setReceiveRequests(response.data.data);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    const fetchFriendRequestSent = async () => {
-      try {
-        const response = await axios.get(
-          `${backendUrl}/user/friend-requests?sent=true`,
-          { withCredentials: true }
-        );
-        if (response.status == 200) {
-          setSentRequests(response.data.data);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
     fetchFriendRequestsReceived();
     fetchFriendRequestSent();
   }, []);
@@ -76,27 +76,40 @@ const FriendRequests = () => {
         {/* displayed results */}
       </div>
       <div className='p-3'>
-        {activeTab == "sent" && sentRequests && (
-          <div className='flex flex-col  gap-2 max-h-64 overflow-y-auto pr-2'>
-            {sentRequests.map((request) => {
-              return (
-                <div key={request.id}>
-                  <SentFriendRequests data={request} />
-                </div>
-              );
-            })}
-          </div>
-        )}
         {activeTab == "received" && receiveRequests && (
           <div className='flex   flex-col gap-2 max-h-64 overflow-y-auto pr-2'>
             {receiveRequests.map((request) => {
               return (
                 <div key={request.id}>
-                  <ReceivedFriendRequests data={request} />
+                  <ReceivedFriendRequests
+                    data={request}
+                    refreshMainList={fetchFriendRequestsReceived}
+                  />
                 </div>
               );
             })}
           </div>
+        )}
+        {activeTab == "received" && receiveRequests?.length == 0 && (
+          <p>No Pending Requests!</p>
+        )}
+        {activeTab == "sent" && sentRequests && (
+          <div className='flex flex-col  gap-2 max-h-64 overflow-y-auto pr-2'>
+            {sentRequests.map((request) => {
+              return (
+                <div key={request.id}>
+                  <SentFriendRequests
+                    data={request}
+                    refreshMainList={fetchFriendRequestSent}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {activeTab == "sent" && sentRequests?.length == 0 && (
+          <p>No Request Sent!</p>
         )}
       </div>
     </div>

@@ -244,7 +244,7 @@ export const addContact = async (
         StatusCodes.FORBIDDEN
       );
     }
-    const contactId = req.query.contactId?.toString();
+    const contactId = req.params.id?.toString();
     if (!contactId) {
       throw new CustomError(
         "Please Provide contact id",

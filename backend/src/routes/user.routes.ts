@@ -17,11 +17,11 @@ router
   .get("/", getUser)
   .get("/contacts/", getUserContacts)
   .get("/status", toggleUserStatus)
-  .get("/add-contact", addContact)
   .post("/update", updateUser)
   .post("/contact/update", updateContact)
   .get("/search-user/", searchUser)
   .get("/send-friend-request/", sendFriendRequest)
-  .get("/friend-requests", getFriendRequests);
+  .get("/friend-requests", getFriendRequests)
+  .get("/add-contact/:id", addContact);
 
 export default router;
